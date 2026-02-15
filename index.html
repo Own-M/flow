@@ -1,4 +1,4 @@
-=<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,7 +23,7 @@
     <!-- Marked JS -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- Chart.js (New for Visuals) -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
@@ -74,6 +74,12 @@
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #22c55e; cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e2e8f0; border-radius: 2px; }
         
+        /* Custom Scrollbar for inner containers */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
@@ -153,19 +159,18 @@
             { stage: "Stage 8: Scale", desc: "Pour fuel on the fire.", tasks: [{ id: '8a', text: "Positive Unit Economics", done: false }, { id: '8b', text: "Predictable Channels", done: false }, { id: '8c', text: "Hire Specialists", done: false }] }
         ];
 
-        // Lean Canvas Defaults
         const CANVAS_DEFAULTS = {
             problem: "List top 3 problems.", solution: "Top 3 features.", metrics: "Key numbers to track.", uvp: "Single clear message.", advantage: "Can't be easily copied.", channels: "Path to customers.", segments: "Target customers.", cost: "Hosting, People, etc.", revenue: "Subscription, Ads, etc."
         };
 
         class StartupMachine {
             constructor() {
-                this.startups = JSON.parse(localStorage.getItem('startup_os_v6')) || [];
+                this.startups = JSON.parse(localStorage.getItem('startup_os_v7')) || [];
                 this.userApiKey = localStorage.getItem('gemini_api_key') || '';
                 this.activeId = null;
                 this.activeView = 'journey'; 
                 this.activeFinanceTab = 'overview';
-                this.chartInstance = null; // Store chart instance
+                this.chartInstance = null; 
                 this.streak = localStorage.getItem('founder_streak') || 0;
                 this.lastLogin = localStorage.getItem('last_login_date');
                 this.checkStreak();
@@ -178,7 +183,7 @@
                     if (this.lastLogin === new Date(Date.now() - 86400000).toDateString()) {
                         this.streak++;
                     } else {
-                        this.streak = 1; // Reset or Start
+                        this.streak = 1;
                     }
                     localStorage.setItem('founder_streak', this.streak);
                     localStorage.setItem('last_login_date', today);
@@ -186,7 +191,7 @@
             }
 
             init() { this.renderSidebar(); this.renderHome(); }
-            save() { localStorage.setItem('startup_os_v6', JSON.stringify(this.startups)); this.renderSidebar(); }
+            save() { localStorage.setItem('startup_os_v7', JSON.stringify(this.startups)); this.renderSidebar(); }
 
             // Navigation
             openSettings() { document.getElementById('apiKeyInput').value = this.userApiKey; this.openModal('settingsModal'); }
@@ -204,6 +209,7 @@
                     level: 1, 
                     checklist: JSON.parse(JSON.stringify(STARTUP_STAGES)),
                     finance: { investments: [], income: [], expenses: [], targetRevenue: 0 },
+                    marketing: { channels: [], content: [], funnel: { traffic: 0, leads: 0, customers: 0 } },
                     founder: { vision: "", commitment: "", risk: "", runway: { monthlyCost: 0, savings: 0, debt: 0, income: 0 } },
                     strategy: { problem: "", target: "", interviews: 0, validation: { landing: false, pilot: false, paid: false } },
                     canvas: { ...CANVAS_DEFAULTS }
@@ -245,11 +251,11 @@
 
             renderStartup(id) {
                 const s = this.getStartup(id);
-                // Tabs
                 const tabs = [ 
-                    { id: 'journey', label: 'Founder Journey', icon: 'fa-route' },
+                    { id: 'journey', label: 'Journey', icon: 'fa-route' },
                     { id: 'roadmap', label: 'Checklist', icon: 'fa-list-check' }, 
-                    { id: 'canvas', label: 'Lean Canvas', icon: 'fa-table-cells-large' }, 
+                    { id: 'marketing', label: 'Marketing', icon: 'fa-bullhorn' },
+                    { id: 'canvas', label: 'Canvas', icon: 'fa-table-cells-large' }, 
                     { id: 'finance', label: 'Finance', icon: 'fa-coins' }, 
                     { id: 'founder', label: 'Founder', icon: 'fa-user-astronaut' }
                 ];
@@ -274,22 +280,157 @@
                         <div class="flex-1 overflow-y-auto p-4 md:p-8 max-w-6xl mx-auto w-full">${this.getTabContent(s)}</div>
                     </div>`;
                 
-                // Initialize charts if needed
-                if(this.activeView === 'finance' && this.activeFinanceTab === 'overview') {
-                    setTimeout(() => this.renderCharts(s), 100);
-                }
+                if(this.activeView === 'finance' && this.activeFinanceTab === 'overview') setTimeout(() => this.renderCharts(s), 100);
             }
 
             getTabContent(s) {
                 switch(this.activeView) {
                     case 'journey': return this.renderJourney(s);
                     case 'roadmap': return this.renderRoadmap(s);
+                    case 'marketing': return this.renderMarketing(s);
                     case 'canvas': return this.renderCanvas(s);
                     case 'finance': return this.renderFinanceEngine(s);
                     case 'founder': return this.renderFounderCore(s);
                     default: return this.renderJourney(s);
                 }
             }
+
+            // --- MARKETING VIEW (NEW) ---
+            renderMarketing(s) {
+                const m = s.marketing || { channels: [], content: [], funnel: { traffic: 0, leads: 0, customers: 0 } };
+                if (!s.marketing) { s.marketing = m; this.save(); } 
+
+                return `
+                    <div class="fade-in space-y-8">
+                        <!-- Funnel Simulator -->
+                        <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                            <div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold font-display"><i class="fa-solid fa-filter mr-2 text-brand-400"></i>Growth Funnel</h2><button onclick="window.app.askAI('Generate a marketing funnel strategy for ${s.name} (${s.industry})')" class="text-xs bg-brand-600 px-3 py-1.5 rounded-lg hover:bg-brand-500 font-bold"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>AI Plan</button></div>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div class="bg-slate-800 p-4 rounded-xl relative group">
+                                    <div class="text-xs text-slate-400 uppercase mb-1">Traffic</div>
+                                    <input type="number" value="${m.funnel.traffic}" onchange="window.app.updateMarketingDeep('${s.id}', 'funnel.traffic', this.value)" class="bg-transparent text-2xl font-bold text-center w-full outline-none text-white">
+                                </div>
+                                <div class="bg-slate-800 p-4 rounded-xl relative group">
+                                    <div class="text-xs text-slate-400 uppercase mb-1">Leads</div>
+                                    <input type="number" value="${m.funnel.leads}" onchange="window.app.updateMarketingDeep('${s.id}', 'funnel.leads', this.value)" class="bg-transparent text-2xl font-bold text-center w-full outline-none text-brand-400">
+                                </div>
+                                <div class="bg-slate-800 p-4 rounded-xl relative group">
+                                    <div class="text-xs text-slate-400 uppercase mb-1">Sales</div>
+                                    <input type="number" value="${m.funnel.customers}" onchange="window.app.updateMarketingDeep('${s.id}', 'funnel.customers', this.value)" class="bg-transparent text-2xl font-bold text-center w-full outline-none text-brand-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            
+                            <!-- Content Engine (New Design) -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[500px]">
+                                <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                                    <div>
+                                        <h3 class="font-bold text-slate-800"><i class="fa-solid fa-pen-nib text-purple-500 mr-2"></i>Content Engine</h3>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Idea • Execution • Status</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="window.app.askAI('Give me 5 content ideas for ${s.name} (${s.industry}) for social media.')" class="text-xs bg-purple-50 text-purple-600 px-3 py-1.5 rounded-lg hover:bg-purple-100 font-bold transition"><i class="fa-solid fa-bolt"></i> AI Ideas</button>
+                                        <button onclick="window.app.addContent('${s.id}')" class="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-bold transition shadow-md">+ Add</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-1">
+                                    ${m.content.length === 0 ? 
+                                        `<div class="h-full flex flex-col items-center justify-center text-center text-slate-300 border-2 border-dashed border-slate-100 rounded-xl p-8">
+                                            <i class="fa-solid fa-layer-group text-3xl mb-2"></i>
+                                            <p class="text-xs">No content yet.<br>Start adding ideas!</p>
+                                        </div>` : ''}
+                                    
+                                    ${m.content.map((cnt, idx) => {
+                                        const st = cnt.status || 'Idea';
+                                        let badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
+                                        if(st === 'Drafting') badgeColor = 'bg-blue-50 text-blue-600 border-blue-100';
+                                        if(st === 'Scheduled') badgeColor = 'bg-orange-50 text-orange-600 border-orange-100';
+                                        if(st === 'Published') badgeColor = 'bg-green-50 text-green-600 border-green-100';
+
+                                        return `
+                                        <div class="p-3 border border-slate-100 rounded-xl hover:border-purple-200 hover:shadow-md transition group bg-white relative">
+                                            <div class="flex gap-3">
+                                                <div class="mt-1.5 text-slate-300 text-[10px]"><i class="fa-solid fa-grip-vertical"></i></div>
+                                                <div class="flex-1 space-y-2">
+                                                    <input value="${cnt.title}" onchange="window.app.updateMarketingItem('${s.id}', 'content', ${idx}, 'title', this.value)" class="w-full text-sm font-bold text-slate-700 outline-none bg-transparent placeholder-slate-300" placeholder="Content Idea / Topic...">
+                                                    
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                                                            <i class="fa-brands fa-buffer text-slate-400 text-[10px]"></i>
+                                                            <input value="${cnt.platform}" onchange="window.app.updateMarketingItem('${s.id}', 'content', ${idx}, 'platform', this.value)" class="text-[10px] font-bold text-slate-600 bg-transparent outline-none w-16" placeholder="Platform">
+                                                        </div>
+                                                        <input type="date" value="${cnt.date}" onchange="window.app.updateMarketingItem('${s.id}', 'content', ${idx}, 'date', this.value)" class="text-[10px] text-slate-400 bg-transparent outline-none font-mono">
+                                                    </div>
+                                                </div>
+                                                <div class="flex flex-col items-end gap-2">
+                                                    <select onchange="window.app.updateMarketingItem('${s.id}', 'content', ${idx}, 'status', this.value)" class="text-[10px] font-bold uppercase px-2 py-1 rounded border outline-none cursor-pointer transition ${badgeColor}">
+                                                        <option ${st==='Idea'?'selected':''}>Idea</option>
+                                                        <option ${st==='Drafting'?'selected':''}>Drafting</option>
+                                                        <option ${st==='Scheduled'?'selected':''}>Scheduled</option>
+                                                        <option ${st==='Published'?'selected':''}>Published</option>
+                                                    </select>
+                                                    <button onclick="window.app.deleteMarketingItem('${s.id}', 'content', ${idx})" class="text-slate-300 hover:text-red-500 transition px-1 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `}).join('')}
+                                </div>
+                            </div>
+
+                            <!-- Channels Strategy (Compact) -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[500px] flex flex-col">
+                                <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                                    <h3 class="font-bold text-slate-800"><i class="fa-solid fa-bullhorn text-blue-500 mr-2"></i>Channels</h3>
+                                    <button onclick="window.app.addChannel('${s.id}')" class="text-xs bg-slate-100 px-3 py-1.5 rounded hover:bg-slate-200 font-bold">+ Add</button>
+                                </div>
+                                <div class="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2">
+                                    ${m.channels.map((ch, idx) => `
+                                        <div class="flex items-center gap-2 p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition">
+                                            <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs"><i class="fa-solid fa-link"></i></div>
+                                            <div class="flex-1">
+                                                <input value="${ch.name}" onchange="window.app.updateMarketingItem('${s.id}', 'channels', ${idx}, 'name', this.value)" class="w-full bg-transparent text-sm font-bold outline-none" placeholder="Channel Name">
+                                                <div class="flex gap-2 mt-1">
+                                                    <select onchange="window.app.updateMarketingItem('${s.id}', 'channels', ${idx}, 'status', this.value)" class="text-[10px] bg-white border rounded px-1 outline-none ${ch.status==='Scale'?'text-green-600':ch.status==='Kill'?'text-red-500':'text-orange-500'}">
+                                                        <option ${ch.status==='Test'?'selected':''}>Test</option>
+                                                        <option ${ch.status==='Scale'?'selected':''}>Scale</option>
+                                                        <option ${ch.status==='Kill'?'selected':''}>Kill</option>
+                                                    </select>
+                                                    <input type="number" value="${ch.cost}" onchange="window.app.updateMarketingItem('${s.id}', 'channels', ${idx}, 'cost', this.value)" class="w-16 text-[10px] bg-transparent border-b border-slate-200 outline-none" placeholder="Cost">
+                                                </div>
+                                            </div>
+                                            <button onclick="window.app.deleteMarketingItem('${s.id}', 'channels', ${idx})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+                                        </div>
+                                    `).join('')}
+                                    ${m.channels.length === 0 ? '<div class="text-center text-xs text-slate-400 py-4">No channels added.</div>' : ''}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- MARKETING LOGIC ---
+            updateMarketingDeep(id, path, val) {
+                const s = this.getStartup(id);
+                // Simple path resolution for marketing.funnel
+                if(path === 'funnel.traffic') s.marketing.funnel.traffic = Number(val);
+                if(path === 'funnel.leads') s.marketing.funnel.leads = Number(val);
+                if(path === 'funnel.customers') s.marketing.funnel.customers = Number(val);
+                this.save(); this.renderStartup(id);
+            }
+            addChannel(id) { this.getStartup(id).marketing.channels.push({ name: '', status: 'Test', cost: 0 }); this.save(); this.renderStartup(id); }
+            addContent(id) { this.getStartup(id).marketing.content.push({ title: '', platform: '', date: '', status: 'Idea' }); this.save(); this.renderStartup(id); }
+            updateMarketingItem(id, type, idx, field, val) { 
+                const s = this.getStartup(id); 
+                s.marketing[type][idx][field] = (field === 'cost') ? Number(val) : val; 
+                this.save(); 
+                if((type === 'channels' && field === 'status') || (type === 'content' && field === 'status')) this.renderStartup(id); // Re-render for color change
+            }
+            deleteMarketingItem(id, type, idx) { this.getStartup(id).marketing[type].splice(idx, 1); this.save(); this.renderStartup(id); }
 
             // --- JOURNEY VIEW ---
             renderJourney(s) {
@@ -329,7 +470,7 @@
                 if (lvl === 4 && this.calcIncome(s) > 0) canUp = true;
                 if (canUp) { s.level = lvl + 1; this.save(); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); this.renderStartup(id); } else { alert("Complete the task requirements first!"); }
             }
-            checkLevelUp(id){} // Auto-check placeholder
+            checkLevelUp(id){} 
 
             // --- CANVAS VIEW ---
             renderCanvas(s) {
@@ -351,7 +492,6 @@
                 
                 let content = '';
                 if(this.activeFinanceTab==='overview') {
-                    // Visual War Room
                     content = `
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <div class="bg-blue-50 p-6 rounded-xl border border-blue-100"><div class="text-xs font-bold text-blue-500 uppercase">Cash Balance</div><div class="text-3xl font-bold text-blue-900">৳${ti+tinc-texp}</div></div>
@@ -359,16 +499,9 @@
                             <div class="bg-red-50 p-6 rounded-xl border border-red-100"><div class="text-xs font-bold text-red-500 uppercase">Expenses</div><div class="text-3xl font-bold text-red-900">৳${texp}</div></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 class="font-bold text-slate-800 mb-4">Cash Flow Visual</h3>
-                                <canvas id="cashflowChart"></canvas>
-                            </div>
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 class="font-bold text-slate-800 mb-4">Expense Breakdown</h3>
-                                <canvas id="expenseChart"></canvas>
-                            </div>
-                        </div>
-                    `;
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-800 mb-4">Cash Flow Visual</h3><canvas id="cashflowChart"></canvas></div>
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-800 mb-4">Expense Breakdown</h3><canvas id="expenseChart"></canvas></div>
+                        </div>`;
                 } else {
                     content = this.renderFinanceTable(s, this.activeFinanceTab === 'investment' ? 'investments' : this.activeFinanceTab === 'income' ? 'income' : 'expenses');
                 }
@@ -379,42 +512,15 @@
                 const ctx1 = document.getElementById('cashflowChart');
                 const ctx2 = document.getElementById('expenseChart');
                 if(!ctx1 || !ctx2) return;
-
-                if(this.chartInstance) { this.chartInstance.destroy(); } // Simple destroy if needed, or handle multiple
+                if(this.chartInstance) { /* Simplified re-render */ } 
 
                 const ti = s.finance.investments.reduce((a,b)=>a+Number(b.amount),0);
                 const tinc = s.finance.income.reduce((a,b)=>a+Number(b.amount),0);
                 const texp = s.finance.expenses.reduce((a,b)=>a+Number(b.amount),0);
 
-                new Chart(ctx1, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Invested', 'Revenue', 'Expenses'],
-                        datasets: [{
-                            label: 'Amount (BDT)',
-                            data: [ti, tinc, texp],
-                            backgroundColor: ['#3b82f6', '#22c55e', '#ef4444'],
-                            borderRadius: 6
-                        }]
-                    },
-                    options: { responsive: true, plugins: { legend: { display: false } } }
-                });
-
-                // Expense breakdown logic
-                const expMap = {};
-                s.finance.expenses.forEach(e => { expMap[e.item] = (expMap[e.item] || 0) + Number(e.amount); });
-                
-                new Chart(ctx2, {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(expMap),
-                        datasets: [{
-                            data: Object.values(expMap),
-                            backgroundColor: ['#f87171', '#fb923c', '#fbbf24', '#a3e635', '#22d3ee', '#818cf8']
-                        }]
-                    },
-                    options: { responsive: true }
-                });
+                new Chart(ctx1, { type: 'bar', data: { labels: ['Invested', 'Revenue', 'Expenses'], datasets: [{ label: 'Amount (BDT)', data: [ti, tinc, texp], backgroundColor: ['#3b82f6', '#22c55e', '#ef4444'], borderRadius: 6 }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
+                const expMap = {}; s.finance.expenses.forEach(e => { expMap[e.item] = (expMap[e.item] || 0) + Number(e.amount); });
+                new Chart(ctx2, { type: 'doughnut', data: { labels: Object.keys(expMap), datasets: [{ data: Object.values(expMap), backgroundColor: ['#f87171', '#fb923c', '#fbbf24', '#a3e635', '#22d3ee', '#818cf8'] }] }, options: { responsive: true } });
             }
 
             renderFinanceTable(s, type) {
@@ -425,57 +531,33 @@
             // --- FOUNDER VIEW ---
             renderFounderCore(s) {
                 const f = s.founder; 
-                // Simulator logic in real-time display
-                // Note: The inputs below update state, but visual simulator creates a "What if" scenario locally
                 return `
                     <div class="fade-in space-y-6">
-                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                            <h2 class="text-lg font-bold text-slate-900 mb-4 font-display">Founder Clarity</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Why this startup?</label><textarea onchange="window.app.updateDeep('${s.id}', 'founder.vision', this.value); window.app.checkLevelUp('${s.id}')" class="w-full border border-slate-200 rounded p-2 text-sm h-20">${f.vision}</textarea></div>
-                                <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Risk Tolerance</label><input onchange="window.app.updateDeep('${s.id}', 'founder.risk', this.value)" value="${f.risk}" class="w-full border border-slate-200 rounded p-2 text-sm"></div>
-                            </div>
-                        </div>
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"><h2 class="text-lg font-bold text-slate-900 mb-4 font-display">Founder Clarity</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Why this startup?</label><textarea onchange="window.app.updateDeep('${s.id}', 'founder.vision', this.value); window.app.checkLevelUp('${s.id}')" class="w-full border border-slate-200 rounded p-2 text-sm h-20">${f.vision}</textarea></div><div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Risk Tolerance</label><input onchange="window.app.updateDeep('${s.id}', 'founder.risk', this.value)" value="${f.risk}" class="w-full border border-slate-200 rounded p-2 text-sm"></div></div></div>
                         <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-lg">
                             <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-xl"><i class="fa-solid fa-sliders mr-2"></i>Runway Simulator</h3><span class="text-xs bg-slate-800 px-2 py-1 rounded">Interactive</span></div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div class="space-y-6">
-                                    <div>
-                                        <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Monthly Expenses</span> <span id="sim-exp-val">৳${f.runway.monthlyCost}</span></div>
-                                        <input type="range" min="0" max="500000" step="1000" value="${f.runway.monthlyCost}" oninput="window.app.updateSim('${s.id}', 'cost', this.value)" class="w-full">
-                                    </div>
-                                    <div>
-                                        <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Total Savings</span> <span id="sim-sav-val">৳${f.runway.savings}</span></div>
-                                        <input type="range" min="0" max="5000000" step="5000" value="${f.runway.savings}" oninput="window.app.updateSim('${s.id}', 'savings', this.value)" class="w-full">
-                                    </div>
+                                    <div><div class="flex justify-between text-xs text-slate-400 mb-1"><span>Monthly Expenses</span> <span id="sim-exp-val">৳${f.runway.monthlyCost}</span></div><input type="range" min="0" max="500000" step="1000" value="${f.runway.monthlyCost}" oninput="window.app.updateSim('${s.id}', 'cost', this.value)" class="w-full"></div>
+                                    <div><div class="flex justify-between text-xs text-slate-400 mb-1"><span>Total Savings</span> <span id="sim-sav-val">৳${f.runway.savings}</span></div><input type="range" min="0" max="5000000" step="5000" value="${f.runway.savings}" oninput="window.app.updateSim('${s.id}', 'savings', this.value)" class="w-full"></div>
                                 </div>
-                                <div class="flex flex-col justify-center items-center bg-slate-800 rounded-xl p-4 border border-slate-700">
-                                    <div class="text-xs text-slate-400 uppercase font-bold mb-2">Projected Survival</div>
-                                    <div class="text-5xl font-bold font-display text-brand-400" id="sim-result">∞</div>
-                                    <div class="text-sm text-slate-500 mt-1">Months</div>
-                                </div>
+                                <div class="flex flex-col justify-center items-center bg-slate-800 rounded-xl p-4 border border-slate-700"><div class="text-xs text-slate-400 uppercase font-bold mb-2">Projected Survival</div><div class="text-5xl font-bold font-display text-brand-400" id="sim-result">∞</div><div class="text-sm text-slate-500 mt-1">Months</div></div>
                             </div>
                         </div>
                     </div>`;
             }
 
-            // Simulator Update Logic
             updateSim(id, type, val) {
                 const s = this.getStartup(id);
-                // Update Model
                 if (type === 'cost') s.founder.runway.monthlyCost = Number(val);
                 if (type === 'savings') s.founder.runway.savings = Number(val);
-                this.save(); // Save state
-
-                // Update UI instantly
+                this.save();
                 document.getElementById(type === 'cost' ? 'sim-exp-val' : 'sim-sav-val').innerText = '৳' + Number(val).toLocaleString();
-                
                 const burn = s.founder.runway.monthlyCost - s.founder.runway.income;
                 const life = burn > 0 ? (s.founder.runway.savings / burn).toFixed(1) : "∞";
                 document.getElementById('sim-result').innerText = life;
             }
 
-            // ... (Rest of logic: updateDeep, updateCanvas, Finance CRUD, AI, PDF - Keep same as before) ...
             updateDeep(id, p, v) { const s = this.getStartup(id); const k = p.split('.'); let t = s; for(let i=0; i<k.length-1; i++) t = t[k[i]]; t[k[k.length-1]] = v; this.save(); }
             updateCanvas(id, k, v) { const s = this.getStartup(id); if(!s.canvas) s.canvas = {...CANVAS_DEFAULTS}; s.canvas[k] = v; this.save(); }
             addFinanceItem(id, type) { this.getStartup(id).finance[type].push({ id: Date.now(), source: 'New Item', amount: 0, date: new Date().toISOString().split('T')[0] }); this.save(); this.renderStartup(id); }
@@ -490,8 +572,8 @@
             openAI(id) { 
                 document.getElementById('aiModal').classList.remove('hidden'); const s = this.getStartup(id);
                 document.getElementById('ai-quick-actions').innerHTML = `
-                    <button onclick="window.app.askAI('Generate a complete Lean Canvas for ${s.name} (${s.industry}).')" class="p-3 bg-slate-50 border rounded-lg text-xs font-bold hover:bg-ai-50">📋 Build Lean Canvas</button>
-                    <button onclick="window.app.askAI('Roast my startup idea: ${s.name}')" class="p-3 bg-slate-50 border rounded-lg text-xs font-bold hover:bg-ai-50">🔥 Roast Idea</button>
+                    <button onclick="window.app.askAI('Draft a marketing strategy for ${s.name} (${s.industry})')" class="p-3 bg-slate-50 border rounded-lg text-xs font-bold hover:bg-ai-50">📈 Marketing Plan</button>
+                    <button onclick="window.app.askAI('Generate 5 viral content ideas for ${s.name}')" class="p-3 bg-slate-50 border rounded-lg text-xs font-bold hover:bg-ai-50">💡 Content Ideas</button>
                 `;
             }
             askAI(q) { document.getElementById('ai-input').value = q; this.sendAIMessage(); }
@@ -508,7 +590,7 @@
 
             downloadPDF(id) {
                 const s = this.getStartup(id); const el = document.getElementById('pdf-export-container');
-                el.innerHTML = `<div style="padding:40px; font-family:sans-serif;"><h1>${s.name} - Report</h1><p>${s.industry} • ${new Date().toLocaleDateString()}</p><br><h3>Lean Canvas</h3><p><strong>Problem:</strong> ${s.canvas?.problem || '-'}</p><p><strong>Solution:</strong> ${s.canvas?.solution || '-'}</p><br><h3>Finance</h3><p>Total Raised: ৳${s.finance.investments.reduce((a,b)=>a+Number(b.amount),0)}</p></div>`;
+                el.innerHTML = `<div style="padding:40px; font-family:sans-serif;"><h1>${s.name} - Report</h1><p>${s.industry} • ${new Date().toLocaleDateString()}</p><br><h3>Marketing</h3><p>Funnel Traffic: ${s.marketing?.funnel?.traffic || 0}</p><br><h3>Finance</h3><p>Total Raised: ৳${s.finance.investments.reduce((a,b)=>a+Number(b.amount),0)}</p></div>`;
                 html2pdf().from(el).save(`${s.name}_Report.pdf`);
             }
         }
