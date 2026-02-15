@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Startup Founder OS | Ultimate Tracker</title>
     
     <!-- Tailwind CSS -->
@@ -47,71 +47,79 @@
             -webkit-print-color-adjust: exact;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Custom Scrollbar for Desktop */
+        @media (min-width: 768px) {
+            ::-webkit-scrollbar { width: 8px; height: 8px; }
+            ::-webkit-scrollbar-track { background: #f1f1f1; }
+            ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+            ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        }
 
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Hide Scrollbar for horizontal nav */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         /* PDF Generation Container (Hidden normally) */
         #pdf-export-container {
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 800px; /* A4 width approx */
+            width: 210mm; /* A4 width */
             background: white;
-            padding: 40px;
+            padding: 0;
             z-index: -1;
         }
 
-        /* Standard Print Fixes (Fallback) */
+        /* Standard Print Fixes */
         @media print {
-            body, html, #main-view, .flex-1 {
-                height: auto !important;
-                overflow: visible !important;
-                position: static !important;
-                display: block !important;
-            }
-            .no-print, nav, aside, .sidebar-container { display: none !important; }
-            .print-visible { display: block !important; }
-            .page-break { page-break-before: always; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased h-screen flex overflow-hidden">
+<body class="text-slate-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-slate-50">
 
-    <!-- Sidebar -->
-    <aside class="w-20 bg-slate-900 flex flex-col items-center py-6 shadow-xl z-20 no-print flex-shrink-0 sidebar-container">
-        <div class="mb-8 text-brand-500 text-2xl font-bold cursor-pointer hover:scale-110 transition" onclick="app.renderDashboard()" title="Dashboard">
+    <!-- Sidebar (Desktop: Left, Mobile: Bottom) -->
+    <aside class="md:w-20 w-full bg-slate-900 flex md:flex-col flex-row items-center justify-between md:justify-start md:py-6 py-3 px-4 shadow-xl z-50 no-print flex-shrink-0 order-2 md:order-1 fixed md:relative bottom-0 h-16 md:h-full">
+        <div class="md:mb-8 text-brand-500 text-2xl font-bold cursor-pointer hover:scale-110 transition md:block hidden" onclick="app.renderDashboard()" title="Dashboard">
             <i class="fa-solid fa-layer-group"></i>
         </div>
+
+        <!-- Mobile Dashboard Icon -->
+        <div class="text-brand-500 text-xl font-bold cursor-pointer md:hidden flex flex-col items-center" onclick="app.renderDashboard()">
+            <i class="fa-solid fa-layer-group"></i>
+            <span class="text-[10px] mt-1 font-normal">Home</span>
+        </div>
         
-        <div id="startup-list" class="flex-1 flex flex-col gap-4 w-full px-2 overflow-y-auto scrollbar-hide">
+        <div id="startup-list" class="flex md:flex-col flex-row gap-4 md:w-full md:px-2 overflow-x-auto md:overflow-y-auto scrollbar-hide items-center md:flex-1 justify-center md:justify-start">
             <!-- Icons injected via JS -->
         </div>
 
-        <button onclick="app.openModal('createModal')" class="mt-4 p-3 bg-brand-600 text-white rounded-xl shadow-lg hover:bg-brand-500 transition transform hover:scale-105" title="Add New Startup">
-            <i class="fa-solid fa-plus"></i>
+        <!-- Add Button -->
+        <button onclick="app.openModal('createModal')" class="md:mt-4 p-2 md:p-3 bg-brand-600 text-white rounded-xl shadow-lg hover:bg-brand-500 transition transform hover:scale-105 flex flex-col items-center justify-center md:w-auto w-10 h-10" title="Add New Startup">
+            <i class="fa-solid fa-plus text-sm md:text-base"></i>
         </button>
     </aside>
 
     <!-- Main Content -->
-    <main id="main-view" class="flex-1 overflow-y-auto relative p-0 bg-slate-50 w-full">
+    <main id="main-view" class="flex-1 overflow-y-auto relative p-0 bg-slate-50 w-full order-1 md:order-2 pb-16 md:pb-0">
         <!-- Dynamic Content -->
     </main>
 
     <!-- Hidden Container for PDF Generation -->
-    <div id="pdf-export-container">
-        <!-- Content will be cloned here before downloading -->
-    </div>
+    <div id="pdf-export-container"></div>
 
     <!-- Modal: Create Startup -->
-    <div id="createModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex justify-center items-center backdrop-blur-sm no-print">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-fade-in">
-            <h2 class="text-2xl font-bold mb-4 text-slate-800"><i class="fa-solid fa-rocket text-brand-500 mr-2"></i>New Venture</h2>
+    <div id="createModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex justify-center items-center backdrop-blur-sm no-print p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md animate-fade-in">
+            <h2 class="text-xl md:text-2xl font-bold mb-4 text-slate-800"><i class="fa-solid fa-rocket text-brand-500 mr-2"></i>New Venture</h2>
             
             <div class="space-y-4">
                 <div>
@@ -197,7 +205,7 @@
                     logo: null, 
                     founded: new Date().toLocaleDateString(),
                     model: "Product", // Service, Product, Hybrid
-                    stage: "Idea", // Idea, Validation, Launch, Scaling
+                    stage: "Idea", 
                     targetMarket: "",
                     launchDate: "",
                     
@@ -216,11 +224,11 @@
                         leads: 0,
                         sales: 0,
                         customers: 0,
-                        history: [] // { month: 'Jan', revenue: 0 }
+                        history: [] 
                     },
                     
                     investment: { rounds: [] },
-                    notes: "" // Content strategy
+                    notes: "" 
                 };
 
                 this.startups.push(newStartup);
@@ -265,14 +273,15 @@
                 this.startups.forEach(s => {
                     const isActive = this.activeStartupId === s.id;
                     const div = document.createElement('div');
-                    div.className = `w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition border-2 shadow-sm ${isActive ? 'border-brand-500 bg-white ring-2 ring-brand-500/30' : 'border-slate-700 bg-slate-800 hover:border-slate-500'}`;
+                    // Responsive sizing: smaller on mobile
+                    div.className = `w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center cursor-pointer transition border-2 shadow-sm flex-shrink-0 ${isActive ? 'border-brand-500 bg-white ring-2 ring-brand-500/30' : 'border-slate-700 bg-slate-800 hover:border-slate-500'}`;
                     div.onclick = () => this.openStartup(s.id);
                     div.title = s.name;
                     
                     if (s.logo) {
                         div.innerHTML = `<img src="${s.logo}" class="w-full h-full object-cover rounded-[10px]">`;
                     } else {
-                        div.innerHTML = `<span class="${isActive ? 'text-brand-600' : 'text-slate-400'} font-bold text-lg">${s.name.substring(0,2).toUpperCase()}</span>`;
+                        div.innerHTML = `<span class="${isActive ? 'text-brand-600' : 'text-slate-400'} font-bold text-sm md:text-lg">${s.name.substring(0,2).toUpperCase()}</span>`;
                     }
                     list.appendChild(div);
                 });
@@ -284,19 +293,19 @@
                 const main = document.getElementById('main-view');
                 
                 main.innerHTML = `
-                    <div class="p-8 md:p-12 max-w-7xl mx-auto fade-in">
-                        <header class="mb-12">
-                            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Founder OS</h1>
-                            <p class="text-slate-500 mt-2 text-lg">Your command center for building and scaling startups.</p>
+                    <div class="p-6 md:p-12 max-w-7xl mx-auto fade-in pb-20 md:pb-12">
+                        <header class="mb-8 md:mb-12 text-center md:text-left">
+                            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Founder OS</h1>
+                            <p class="text-slate-500 mt-2 text-base md:text-lg">Build, Track, Scale.</p>
                         </header>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Create New -->
-                            <div onclick="app.openModal('createModal')" class="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition min-h-[220px] group">
-                                <div class="w-16 h-16 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition shadow-inner">
+                            <div onclick="app.openModal('createModal')" class="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition min-h-[180px] md:min-h-[220px] group">
+                                <div class="w-12 h-12 md:w-16 md:h-16 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-4 group-hover:scale-110 transition shadow-inner">
                                     <i class="fa-solid fa-plus"></i>
                                 </div>
-                                <h3 class="font-bold text-slate-700 text-lg">Add New Venture</h3>
+                                <h3 class="font-bold text-slate-700 text-base md:text-lg">Add New Venture</h3>
                             </div>
 
                             ${this.startups.map(s => {
@@ -311,7 +320,7 @@
                                     </div>
                                     
                                     <div>
-                                        <h3 class="font-bold text-xl text-slate-800 mb-1 group-hover:text-brand-600 transition">${s.name}</h3>
+                                        <h3 class="font-bold text-xl text-slate-800 mb-1 group-hover:text-brand-600 transition truncate">${s.name}</h3>
                                         <p class="text-sm text-slate-500">${s.industry}</p>
                                     </div>
 
@@ -325,7 +334,7 @@
                                         </div>
                                     </div>
 
-                                    <button onclick="event.stopPropagation(); app.deleteStartup(${s.id})" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">
+                                    <button onclick="event.stopPropagation(); app.deleteStartup(${s.id})" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 md:opacity-0 md:group-hover:opacity-100 transition z-10">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </div>
@@ -350,47 +359,45 @@
                 
                 main.innerHTML = `
                     <div class="h-full flex flex-col bg-white">
-                        <!-- Top Bar -->
-                        <div class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center no-print sticky top-0 z-10 shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <div class="relative group cursor-pointer w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
+                        <!-- Top Bar (Mobile Optimized) -->
+                        <div class="bg-white border-b border-slate-200 px-4 md:px-6 py-4 flex justify-between items-center no-print sticky top-0 z-20 shadow-sm">
+                            <div class="flex items-center gap-3 md:gap-4 overflow-hidden">
+                                <div class="relative group cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                                     ${s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-camera text-slate-400"></i>`}
                                     <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="app.updateLogo(${s.id}, this)">
                                 </div>
-                                <div>
-                                    <h1 class="text-xl font-bold text-slate-900 leading-tight">${s.name}</h1>
-                                    <div class="text-xs text-slate-500 flex items-center gap-2">
-                                        <span>${s.founder}</span> • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">${s.stage}</span>
+                                <div class="min-w-0">
+                                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight truncate">${s.name}</h1>
+                                    <div class="text-xs text-slate-500 flex items-center gap-1 md:gap-2 truncate">
+                                        <span class="truncate">${s.founder}</span> <span class="hidden md:inline">•</span> <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 hidden md:inline-block">${s.stage}</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="app.downloadPDF(${s.id})" class="flex items-center gap-2 px-4 py-2 bg-brand-50 text-brand-700 font-medium rounded-lg hover:bg-brand-100 transition text-sm">
-                                    <i class="fa-solid fa-download"></i> PDF Report
+                            <div class="flex gap-2 flex-shrink-0">
+                                <button onclick="app.downloadPDF(${s.id})" class="flex items-center gap-1 md:gap-2 px-3 py-2 bg-brand-50 text-brand-700 font-medium rounded-lg hover:bg-brand-100 transition text-xs md:text-sm">
+                                    <i class="fa-solid fa-download"></i> <span class="hidden md:inline">Report</span>
                                 </button>
-                                <button onclick="app.renderDashboard()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition text-sm">
-                                    <i class="fa-solid fa-times"></i>
+                                <button onclick="app.renderDashboard()" class="px-3 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition text-xs md:text-sm">
+                                    <i class="fa-solid fa-times text-lg"></i>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Workspace -->
-                        <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
-                            <!-- Nav -->
-                            <div class="w-full md:w-60 bg-slate-50 border-r border-slate-200 p-3 no-print overflow-y-auto flex-shrink-0">
-                                <nav class="space-y-1">
-                                    ${this.navButton('overview', 'fa-chart-pie', 'Status Overview')}
-                                    ${this.navButton('checklist', 'fa-list-check', 'Master Checklist')}
-                                    ${this.navButton('finance', 'fa-wallet', 'Financials')}
-                                    ${this.navButton('growth', 'fa-chart-line', 'Growth & Sales')}
-                                    ${this.navButton('marketing', 'fa-bullhorn', 'Marketing')}
-                                    ${this.navButton('content', 'fa-pen-nib', 'Content Strategy')}
-                                    ${this.navButton('investment', 'fa-handshake', 'Investment')}
-                                </nav>
+                        <div class="flex-1 overflow-hidden flex flex-col md:flex-row pb-16 md:pb-0">
+                            <!-- Nav (Mobile: Horizontal Scroll, Desktop: Vertical) -->
+                            <div class="w-full md:w-60 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-2 md:p-3 no-print overflow-x-auto md:overflow-y-auto flex-shrink-0 flex md:block gap-2 scrollbar-hide">
+                                ${this.navButton('overview', 'fa-chart-pie', 'Status')}
+                                ${this.navButton('checklist', 'fa-list-check', 'Checklist')}
+                                ${this.navButton('finance', 'fa-wallet', 'Financials')}
+                                ${this.navButton('growth', 'fa-chart-line', 'Growth')}
+                                ${this.navButton('marketing', 'fa-bullhorn', 'Marketing')}
+                                ${this.navButton('content', 'fa-pen-nib', 'Content')}
+                                ${this.navButton('investment', 'fa-handshake', 'Invest')}
                             </div>
 
                             <!-- Content Area -->
-                            <div class="flex-1 overflow-y-auto bg-white p-6 md:p-10" id="tab-container">
+                            <div class="flex-1 overflow-y-auto bg-white p-4 md:p-10" id="tab-container">
                                 ${this.renderTabContent(s)}
                             </div>
                         </div>
@@ -401,8 +408,8 @@
             navButton(id, icon, label) {
                 const isActive = this.activeTab === id;
                 return `
-                    <button onclick="app.switchTab('${id}')" class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition ${isActive ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:bg-slate-200'}">
-                        <i class="fa-solid ${icon} w-5 text-center ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i> ${label}
+                    <button onclick="app.switchTab('${id}')" class="flex-shrink-0 whitespace-nowrap md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-3 py-2 md:py-2.5 text-xs md:text-sm font-medium rounded-lg transition ${isActive ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:bg-slate-200'}">
+                        <i class="fa-solid ${icon} w-4 md:w-5 text-center ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i> ${label}
                     </button>
                 `;
             }
@@ -423,74 +430,78 @@
                 if (this.activeTab === 'investment') return this.renderInvestmentTab(s);
             }
 
-            // --- TAB RENDERERS ---
+            // --- TAB RENDERERS (Optimized for Mobile) ---
 
             renderOverviewTab(s) {
                 const cashLeft = s.finance.budget - this.calculateExpenses(s);
                 return `
-                    <div class="fade-in max-w-4xl">
-                        <h2 class="text-2xl font-bold text-slate-800 mb-6">Status Dashboard</h2>
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4 md:mb-6">Status Dashboard</h2>
                         
-                        <!-- Status Table / Basic Info -->
-                        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
-                            <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-semibold text-slate-700">Project Essentials</div>
+                        <!-- Status Table -->
+                        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6 md:mb-8">
+                            <div class="bg-slate-50 px-4 md:px-6 py-3 border-b border-slate-200 font-semibold text-slate-700 text-sm md:text-base">Project Essentials</div>
                             <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                                <div class="p-6 space-y-4">
+                                <div class="p-4 md:p-6 space-y-4">
                                     ${this.inputRow(s.id, 'Founder', s.founder, 'founder')}
                                     ${this.inputRow(s.id, 'Business Model', s.model, 'model', 'Product/Service/Hybrid')}
                                     ${this.inputRow(s.id, 'Target Market', s.targetMarket, 'targetMarket', 'e.g. Gen-Z in Dhaka')}
                                 </div>
-                                <div class="p-6 space-y-4">
+                                <div class="p-4 md:p-6 space-y-4">
                                     ${this.selectRow(s.id, 'Current Stage', s.stage, 'stage', ['Idea', 'Validation', 'MVP Build', 'Launch', 'Scaling'])}
                                     ${this.inputRow(s.id, 'Launch Date', s.launchDate, 'launchDate', 'YYYY-MM-DD', 'date')}
-                                    <div class="flex justify-between items-center pt-2">
-                                        <label class="text-sm font-medium text-slate-500">Overall Progress</label>
-                                        <span class="text-brand-600 font-bold">${this.calculateProgress(s)}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 rounded-full h-2">
-                                        <div class="bg-brand-500 h-2 rounded-full" style="width: ${this.calculateProgress(s)}%"></div>
+                                    <div class="pt-2">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <label class="text-xs font-medium text-slate-500">Execution Progress</label>
+                                            <span class="text-brand-600 font-bold text-sm">${this.calculateProgress(s)}%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 rounded-full h-2">
+                                            <div class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width: ${this.calculateProgress(s)}%"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Financial Snapshot Mini -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                <div class="text-xs text-blue-500 font-bold uppercase">Initial Budget</div>
-                                <div class="text-xl font-bold text-blue-900">$${s.finance.budget}</div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+                            <div class="bg-blue-50 p-3 md:p-4 rounded-xl border border-blue-100">
+                                <div class="text-[10px] md:text-xs text-blue-500 font-bold uppercase">Budget</div>
+                                <div class="text-base md:text-xl font-bold text-blue-900 truncate">$${s.finance.budget}</div>
                             </div>
-                            <div class="bg-red-50 p-4 rounded-xl border border-red-100">
-                                <div class="text-xs text-red-500 font-bold uppercase">Burn (Monthly)</div>
-                                <div class="text-xl font-bold text-red-900">$${s.finance.monthlyCost}</div>
+                            <div class="bg-red-50 p-3 md:p-4 rounded-xl border border-red-100">
+                                <div class="text-[10px] md:text-xs text-red-500 font-bold uppercase">Burn/Mo</div>
+                                <div class="text-base md:text-xl font-bold text-red-900 truncate">$${s.finance.monthlyCost}</div>
                             </div>
-                             <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                                <div class="text-xs text-emerald-500 font-bold uppercase">Revenue (Curr)</div>
-                                <div class="text-xl font-bold text-emerald-900">$${s.finance.currentRevenue}</div>
+                             <div class="bg-emerald-50 p-3 md:p-4 rounded-xl border border-emerald-100">
+                                <div class="text-[10px] md:text-xs text-emerald-500 font-bold uppercase">Revenue</div>
+                                <div class="text-base md:text-xl font-bold text-emerald-900 truncate">$${s.finance.currentRevenue}</div>
                             </div>
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <div class="text-xs text-slate-500 font-bold uppercase">Cash Left</div>
-                                <div class="text-xl font-bold text-slate-800">$${cashLeft}</div>
+                            <div class="bg-slate-50 p-3 md:p-4 rounded-xl border border-slate-200">
+                                <div class="text-[10px] md:text-xs text-slate-500 font-bold uppercase">Cash Left</div>
+                                <div class="text-base md:text-xl font-bold text-slate-800 truncate">$${cashLeft}</div>
                             </div>
                         </div>
 
                         <!-- Timeline Visual -->
-                        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-                            <h3 class="font-bold text-slate-800 mb-4">Project Timeline</h3>
-                            <div class="relative flex items-center justify-between mt-8 mb-4 px-2">
-                                <div class="absolute left-0 right-0 top-1/2 h-1 bg-slate-100 -z-10"></div>
-                                ${['Idea', 'Validation', 'MVP', 'Launch', 'Growth'].map((step, idx) => {
-                                    const currentStageIdx = ['Idea', 'Validation', 'MVP Build', 'Launch', 'Scaling'].indexOf(s.stage);
-                                    const isDone = idx <= currentStageIdx;
-                                    return `
-                                    <div class="flex flex-col items-center gap-2 bg-white">
-                                        <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 ${isDone ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-slate-300 text-slate-300'}">
-                                            <i class="fa-solid fa-check text-xs"></i>
+                        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-6 overflow-x-auto">
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm md:text-base">Project Timeline</h3>
+                            <div class="min-w-[300px]">
+                                <div class="relative flex items-center justify-between mt-4 mb-4 px-2">
+                                    <div class="absolute left-0 right-0 top-1/2 h-1 bg-slate-100 -z-10"></div>
+                                    ${['Idea', 'Validation', 'MVP', 'Launch', 'Growth'].map((step, idx) => {
+                                        const currentStageIdx = ['Idea', 'Validation', 'MVP Build', 'Launch', 'Scaling'].indexOf(s.stage);
+                                        const isDone = idx <= currentStageIdx;
+                                        return `
+                                        <div class="flex flex-col items-center gap-2 bg-white px-1">
+                                            <div class="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center border-2 transition ${isDone ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-slate-300 text-slate-300'}">
+                                                <i class="fa-solid fa-check text-[10px] md:text-xs"></i>
+                                            </div>
+                                            <span class="text-[10px] md:text-xs font-medium ${isDone ? 'text-brand-600' : 'text-slate-400'}">${step}</span>
                                         </div>
-                                        <span class="text-xs font-medium ${isDone ? 'text-brand-600' : 'text-slate-400'}">${step}</span>
-                                    </div>
-                                    `;
-                                }).join('')}
+                                        `;
+                                    }).join('')}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -499,40 +510,31 @@
 
             renderGrowthTab(s) {
                 return `
-                    <div class="fade-in max-w-4xl">
+                    <div class="fade-in max-w-4xl mx-auto">
                         <div class="flex justify-between items-end mb-6">
                             <div>
-                                <h2 class="text-2xl font-bold text-slate-800">Growth Metrics</h2>
-                                <p class="text-slate-500 text-sm">Track your sales, leads, and customer acquisition.</p>
+                                <h2 class="text-xl md:text-2xl font-bold text-slate-800">Growth Metrics</h2>
+                                <p class="text-slate-500 text-xs md:text-sm">Track your sales funnel.</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="text-xs font-bold text-slate-500 uppercase">Total Leads</label>
-                                    <i class="fa-solid fa-filter text-brand-200"></i>
-                                </div>
-                                <input type="number" value="${s.growth.leads}" onchange="app.updateField(${s.id}, 'growth.leads', this.value)" class="text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <label class="text-xs font-bold text-slate-500 uppercase">Total Leads</label>
+                                <input type="number" value="${s.growth.leads}" onchange="app.updateField(${s.id}, 'growth.leads', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
                             </div>
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="text-xs font-bold text-slate-500 uppercase">Paying Customers</label>
-                                    <i class="fa-solid fa-users text-emerald-200"></i>
-                                </div>
-                                <input type="number" value="${s.growth.customers}" onchange="app.updateField(${s.id}, 'growth.customers', this.value)" class="text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <label class="text-xs font-bold text-slate-500 uppercase">Paying Customers</label>
+                                <input type="number" value="${s.growth.customers}" onchange="app.updateField(${s.id}, 'growth.customers', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
                             </div>
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="text-xs font-bold text-slate-500 uppercase">Total Sales ($)</label>
-                                    <i class="fa-solid fa-dollar-sign text-yellow-200"></i>
-                                </div>
-                                <input type="number" value="${s.growth.sales}" onchange="app.updateField(${s.id}, 'growth.sales', this.value)" class="text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <label class="text-xs font-bold text-slate-500 uppercase">Total Sales ($)</label>
+                                <input type="number" value="${s.growth.sales}" onchange="app.updateField(${s.id}, 'growth.sales', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
                             </div>
                         </div>
 
                         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-                            <h3 class="font-bold text-slate-800 mb-2">Conversion Rates</h3>
+                            <h3 class="font-bold text-slate-800 mb-4">Conversion Analysis</h3>
                             <div class="space-y-4">
                                 <div>
                                     <div class="flex justify-between text-sm mb-1">
@@ -552,24 +554,23 @@
             renderFinanceTab(s) {
                 const expenses = this.calculateExpenses(s);
                 return `
-                    <div class="fade-in max-w-4xl">
-                        <h2 class="text-2xl font-bold text-slate-800 mb-6">Financial Overview</h2>
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Financial Overview</h2>
                         
-                        <div class="bg-slate-900 text-white rounded-2xl p-8 mb-8 shadow-xl relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full blur-3xl opacity-10 -mr-16 -mt-16"></div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                        <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 mb-8 shadow-xl relative overflow-hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                                 <div>
                                     <label class="text-slate-400 text-xs font-bold uppercase">Initial Investment</label>
                                     <div class="flex items-center mt-1">
                                         <span class="text-2xl mr-1">$</span>
-                                        <input type="number" value="${s.finance.budget}" onchange="app.updateField(${s.id}, 'finance.budget', this.value)" class="bg-transparent text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-white">
+                                        <input type="number" value="${s.finance.budget}" onchange="app.updateField(${s.id}, 'finance.budget', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-white">
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="text-slate-400 text-xs font-bold uppercase">Current Revenue (Monthly)</label>
+                                    <label class="text-slate-400 text-xs font-bold uppercase">Current Revenue/Mo</label>
                                     <div class="flex items-center mt-1">
                                         <span class="text-2xl mr-1 text-emerald-400">$</span>
-                                        <input type="number" value="${s.finance.currentRevenue}" onchange="app.updateField(${s.id}, 'finance.currentRevenue', this.value)" class="bg-transparent text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-emerald-400 text-emerald-400">
+                                        <input type="number" value="${s.finance.currentRevenue}" onchange="app.updateField(${s.id}, 'finance.currentRevenue', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-emerald-400 text-emerald-400">
                                     </div>
                                 </div>
                                  <div>
@@ -588,35 +589,34 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200">
                             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
-                                <h3 class="font-bold text-slate-800">Expense Ledger</h3>
+                                <h3 class="font-bold text-slate-800">Expenses</h3>
                                 <button onclick="app.addExpense(${s.id})" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700 transition">Add Item</button>
                             </div>
                             <div class="max-h-96 overflow-y-auto">
                                 <table class="w-full text-left text-sm">
                                     <thead class="bg-white text-slate-500 sticky top-0">
                                         <tr>
-                                            <th class="px-6 py-3 font-medium">Item Name</th>
-                                            <th class="px-6 py-3 font-medium">Amount ($)</th>
-                                            <th class="px-6 py-3 font-medium w-10"></th>
+                                            <th class="px-4 md:px-6 py-3 font-medium">Item</th>
+                                            <th class="px-4 md:px-6 py-3 font-medium">Cost</th>
+                                            <th class="px-2 py-3 w-8"></th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
                                         ${s.finance.expenses.map((ex, idx) => `
                                             <tr class="group hover:bg-slate-50">
-                                                <td class="px-6 py-2">
+                                                <td class="px-4 md:px-6 py-2">
                                                     <input type="text" value="${ex.item}" onchange="app.updateExpense(${s.id}, ${idx}, 'item', this.value)" class="w-full bg-transparent outline-none py-1">
                                                 </td>
-                                                <td class="px-6 py-2">
+                                                <td class="px-4 md:px-6 py-2">
                                                     <input type="number" value="${ex.cost}" onchange="app.updateExpense(${s.id}, ${idx}, 'cost', this.value)" class="w-full bg-transparent outline-none py-1 text-slate-700 font-mono">
                                                 </td>
-                                                <td class="px-6 py-2 text-center">
-                                                    <button onclick="app.removeExpense(${s.id}, ${idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash-can"></i></button>
+                                                <td class="px-2 py-2 text-center">
+                                                    <button onclick="app.removeExpense(${s.id}, ${idx})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
                                                 </td>
                                             </tr>
                                         `).join('')}
                                     </tbody>
                                 </table>
-                                ${s.finance.expenses.length === 0 ? '<div class="p-8 text-center text-slate-400 italic">No expenses recorded yet.</div>' : ''}
                             </div>
                         </div>
                     </div>
@@ -625,22 +625,22 @@
 
             renderChecklistTab(s) {
                  return `
-                    <div class="fade-in max-w-4xl">
-                        <h2 class="text-2xl font-bold text-slate-800 mb-6">Execution Checklist</h2>
-                         <div class="space-y-8">
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Execution Checklist</h2>
+                         <div class="space-y-6">
                             ${s.checklist.map((stage, stageIdx) => `
                                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                     <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
-                                        <h3 class="font-bold text-slate-800">${stage.stage}</h3>
-                                        <span class="text-xs font-mono text-slate-400 bg-white px-2 py-1 border rounded shadow-sm">PHASE 0${stageIdx+1}</span>
+                                        <h3 class="font-bold text-slate-800 text-sm md:text-base">${stage.stage}</h3>
+                                        <span class="text-[10px] md:text-xs font-mono text-slate-400 bg-white px-2 py-1 border rounded shadow-sm">PHASE 0${stageIdx+1}</span>
                                     </div>
-                                    <div class="p-6 space-y-3">
+                                    <div class="p-4 md:p-6 space-y-3">
                                         ${stage.tasks.map((task, taskIdx) => `
                                             <div class="flex items-start gap-3 group p-2 hover:bg-slate-50 rounded-lg transition">
                                                 <input type="checkbox" onchange="app.toggleTask(${s.id}, ${stageIdx}, ${taskIdx})" 
                                                     class="mt-1 w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer" 
                                                     ${task.done ? 'checked' : ''}>
-                                                <div class="${task.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} flex-1 select-none">
+                                                <div class="${task.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} flex-1 select-none text-sm md:text-base">
                                                     ${task.text}
                                                 </div>
                                             </div>
@@ -655,30 +655,29 @@
 
             renderMarketingTab(s) {
                  return `
-                    <div class="fade-in max-w-4xl">
-                        <h2 class="text-2xl font-bold text-slate-800 mb-6">Marketing Strategy</h2>
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Marketing Strategy</h2>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                            <h3 class="font-bold text-slate-800 mb-2">Core Strategy & Positioning</h3>
+                            <h3 class="font-bold text-slate-800 mb-2">Core Strategy</h3>
                             <textarea oninput="app.updateField(${s.id}, 'marketing.strategy', this.value)" 
-                                class="w-full h-40 border border-slate-200 rounded-lg p-4 text-slate-700 outline-none focus:border-brand-500 bg-slate-50 focus:bg-white transition" 
-                                placeholder="Describe your Go-to-Market strategy, USP, and key messaging...">${s.marketing.strategy}</textarea>
+                                class="w-full h-40 border border-slate-200 rounded-lg p-3 text-slate-700 outline-none focus:border-brand-500 bg-slate-50" 
+                                placeholder="Describe your Go-to-Market strategy...">${s.marketing.strategy}</textarea>
                         </div>
                          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-slate-800">Channels & Campaigns</h3>
-                                <button onclick="app.addChannel(${s.id})" class="text-sm text-brand-600 font-medium hover:bg-brand-50 px-3 py-1 rounded transition">+ Add Channel</button>
+                                <h3 class="font-bold text-slate-800">Channels</h3>
+                                <button onclick="app.addChannel(${s.id})" class="text-sm text-brand-600 font-medium">+ Add Channel</button>
                             </div>
-                            <div class="space-y-2">
-                                ${s.marketing.channels.length === 0 ? '<p class="text-slate-400 text-sm italic">No channels added yet.</p>' : ''}
+                            <div class="space-y-3">
                                 ${s.marketing.channels.map((ch, idx) => `
-                                    <div class="flex gap-2 items-center">
-                                        <input type="text" value="${ch.name}" onchange="app.updateChannel(${s.id}, ${idx}, 'name', this.value)" class="flex-1 border border-slate-200 rounded p-2 text-sm bg-slate-50 focus:bg-white focus:border-brand-500 outline-none transition" placeholder="Channel (e.g. SEO)">
-                                        <select onchange="app.updateChannel(${s.id}, ${idx}, 'status', this.value)" class="border border-slate-200 rounded p-2 text-sm bg-white outline-none">
+                                    <div class="flex flex-col md:flex-row gap-2 md:items-center bg-slate-50 md:bg-white p-2 md:p-0 rounded">
+                                        <input type="text" value="${ch.name}" onchange="app.updateChannel(${s.id}, ${idx}, 'name', this.value)" class="flex-1 border border-slate-200 rounded p-2 text-sm outline-none" placeholder="Channel">
+                                        <select onchange="app.updateChannel(${s.id}, ${idx}, 'status', this.value)" class="border border-slate-200 rounded p-2 text-sm bg-white outline-none w-full md:w-auto">
                                             <option ${ch.status === 'Planned' ? 'selected' : ''}>Planned</option>
                                             <option ${ch.status === 'Live' ? 'selected' : ''}>Live</option>
                                             <option ${ch.status === 'Paused' ? 'selected' : ''}>Paused</option>
                                         </select>
-                                        <button onclick="app.removeChannel(${s.id}, ${idx})" class="text-slate-400 hover:text-red-500 px-2"><i class="fa-solid fa-times"></i></button>
+                                        <button onclick="app.removeChannel(${s.id}, ${idx})" class="text-slate-400 hover:text-red-500 px-2 self-end md:self-auto"><i class="fa-solid fa-times"></i></button>
                                     </div>
                                 `).join('')}
                             </div>
@@ -689,12 +688,12 @@
 
             renderContentTab(s) {
                  return `
-                    <div class="fade-in max-w-4xl h-full flex flex-col">
-                        <h2 class="text-2xl font-bold text-slate-800 mb-4">Content Strategy</h2>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex-1 flex flex-col">
+                    <div class="fade-in max-w-4xl mx-auto h-full flex flex-col">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4">Content Strategy</h2>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex-1 flex flex-col min-h-[400px]">
                             <textarea oninput="app.updateField(${s.id}, 'notes', this.value)" 
-                                class="w-full h-full p-6 text-slate-700 outline-none resize-none font-mono text-sm leading-relaxed" 
-                                placeholder="# Content Calendar\n\nWeek 1:\n- [ ] LinkedIn Post: Story of origin\n- [ ] Blog: How to fix X problem\n\nIdeas:\n..."> ${s.notes}</textarea>
+                                class="w-full h-full p-4 md:p-6 text-slate-700 outline-none resize-none font-mono text-sm leading-relaxed" 
+                                placeholder="# Content Calendar...">${s.notes}</textarea>
                         </div>
                     </div>
                  `;
@@ -702,31 +701,21 @@
             
             renderInvestmentTab(s) {
                 return `
-                    <div class="fade-in max-w-4xl">
-                        <h2 class="text-2xl font-bold text-slate-800 mb-6">Investment & Fundraising</h2>
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Investment</h2>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                             <div class="flex justify-between items-center mb-6">
-                                <h3 class="font-bold text-slate-800">Cap Table / Funding Rounds</h3>
+                                <h3 class="font-bold text-slate-800">Funding Rounds</h3>
                                 <button onclick="app.addRound(${s.id})" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700">+ Add Round</button>
                             </div>
                             
                             <div class="grid gap-4">
-                                ${s.investment.rounds.length === 0 ? '<p class="text-slate-400 italic">No funding rounds added.</p>' : ''}
                                 ${s.investment.rounds.map((r, idx) => `
-                                    <div class="border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row gap-4 items-start md:items-center bg-slate-50 hover:border-brand-200 transition">
-                                        <div class="flex-1 w-full">
-                                            <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block">Round</label>
-                                            <input type="text" value="${r.name}" onchange="app.updateRound(${s.id}, ${idx}, 'name', this.value)" class="w-full bg-transparent font-semibold border-b border-slate-300 focus:border-brand-500 outline-none pb-1" placeholder="Seed Round">
-                                        </div>
-                                        <div class="flex-1 w-full">
-                                            <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block">Amount</label>
-                                            <input type="number" value="${r.amount}" onchange="app.updateRound(${s.id}, ${idx}, 'amount', this.value)" class="w-full bg-transparent border-b border-slate-300 focus:border-brand-500 outline-none pb-1" placeholder="100000">
-                                        </div>
-                                        <div class="flex-1 w-full">
-                                            <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block">Investor</label>
-                                            <input type="text" value="${r.investor}" onchange="app.updateRound(${s.id}, ${idx}, 'investor', this.value)" class="w-full bg-transparent border-b border-slate-300 focus:border-brand-500 outline-none pb-1" placeholder="VC Name">
-                                        </div>
-                                        <button onclick="app.removeRound(${s.id}, ${idx})" class="text-slate-400 hover:text-red-600 mt-4 md:mt-0"><i class="fa-solid fa-times"></i></button>
+                                    <div class="border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row gap-4 bg-slate-50">
+                                        <input type="text" value="${r.name}" onchange="app.updateRound(${s.id}, ${idx}, 'name', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Seed Round">
+                                        <input type="number" value="${r.amount}" onchange="app.updateRound(${s.id}, ${idx}, 'amount', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Amount">
+                                        <input type="text" value="${r.investor}" onchange="app.updateRound(${s.id}, ${idx}, 'investor', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Investor">
+                                        <button onclick="app.removeRound(${s.id}, ${idx})" class="text-slate-400 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
                                     </div>
                                 `).join('')}
                             </div>
@@ -756,105 +745,175 @@
                 `;
             }
 
-            // --- Logic & PDF ---
-
+            // --- PDF Generation Logic ---
             downloadPDF(id) {
                 const s = this.getStartup(id);
                 const container = document.getElementById('pdf-export-container');
+                const cashLeft = s.finance.budget - this.calculateExpenses(s);
                 
-                // Build a clean, print-friendly structure
+                // --- TABLE STYLES ---
+                const tableStyle = `width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;`;
+                const thStyle = `background: #f1f5f9; padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #334155;`;
+                const tdStyle = `padding: 8px; border: 1px solid #e2e8f0; color: #1e293b;`;
+                const headerStyle = `border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between;`;
+                const sectionTitle = `font-size: 16px; font-weight: bold; color: #0f172a; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;`;
+
                 const html = `
-                    <div style="font-family: 'Inter', sans-serif; color: #1e293b;">
-                        <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-family: 'Inter', sans-serif; color: #1e293b; padding: 20px;">
+                        
+                        <!-- Header -->
+                        <div style="${headerStyle}">
                             <div>
-                                <h1 style="font-size: 32px; font-weight: 800; margin: 0; color: #0f172a;">${s.name}</h1>
-                                <p style="margin: 5px 0 0; color: #64748b;">${s.founder} • ${s.industry} • ${s.stage}</p>
+                                <h1 style="font-size: 28px; font-weight: 800; margin: 0; text-transform: uppercase;">${s.name}</h1>
+                                <p style="margin: 5px 0 0; font-size: 12px; color: #64748b;">${s.founder} | ${s.industry} | ${s.stage}</p>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; font-weight: bold;">Generated Report</div>
-                                <div style="font-size: 14px; font-weight: bold;">${new Date().toLocaleDateString()}</div>
+                                <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Generated On</div>
+                                <div style="font-size: 12px; font-weight: bold;">${new Date().toLocaleDateString()}</div>
                             </div>
                         </div>
 
-                        <!-- Snapshot -->
-                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                            <h3 style="margin-top:0; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Executive Summary</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <div><strong>Model:</strong> ${s.model}</div>
-                                <div><strong>Target Market:</strong> ${s.targetMarket}</div>
-                                <div><strong>Launch Date:</strong> ${s.launchDate}</div>
-                                <div><strong>Progress:</strong> ${this.calculateProgress(s)}%</div>
-                            </div>
-                        </div>
+                        <!-- 1. EXECUTIVE SUMMARY & ROADMAP -->
+                        <div style="${sectionTitle}">1. Executive Summary & Status</div>
+                        <table style="${tableStyle}">
+                            <tr>
+                                <th style="${thStyle}">Business Model</th>
+                                <td style="${tdStyle}">${s.model}</td>
+                                <th style="${thStyle}">Target Market</th>
+                                <td style="${tdStyle}">${s.targetMarket}</td>
+                            </tr>
+                            <tr>
+                                <th style="${thStyle}">Launch Date</th>
+                                <td style="${tdStyle}">${s.launchDate}</td>
+                                <th style="${thStyle}">Execution Score</th>
+                                <td style="${tdStyle}"><strong>${this.calculateProgress(s)}%</strong></td>
+                            </tr>
+                        </table>
 
-                        <!-- Finance -->
-                        <div style="margin-bottom: 30px;">
-                            <h3 style="border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Financials</h3>
-                            <div style="display: flex; gap: 20px; margin-bottom: 15px;">
-                                <div style="flex:1; background: #f0f9ff; padding: 15px; border-radius: 8px;">
-                                    <div style="font-size: 10px; text-transform: uppercase;">Budget</div>
-                                    <div style="font-size: 18px; font-weight: bold;">$${s.finance.budget}</div>
-                                </div>
-                                <div style="flex:1; background: #fef2f2; padding: 15px; border-radius: 8px;">
-                                    <div style="font-size: 10px; text-transform: uppercase;">Monthly Burn</div>
-                                    <div style="font-size: 18px; font-weight: bold;">$${s.finance.monthlyCost}</div>
-                                </div>
-                                <div style="flex:1; background: #ecfdf5; padding: 15px; border-radius: 8px;">
-                                    <div style="font-size: 10px; text-transform: uppercase;">Revenue</div>
-                                    <div style="font-size: 18px; font-weight: bold;">$${s.finance.currentRevenue}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Growth -->
-                        <div style="margin-bottom: 30px;">
-                            <h3 style="border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Growth Metrics</h3>
-                            <table style="width: 100%; border-collapse: collapse;">
+                        <!-- 2. MONTHLY ROADMAP (Generated based on Checklist) -->
+                        <div style="${sectionTitle}">2. Monthly Roadmap & Checklist Status</div>
+                        <table style="${tableStyle}">
+                            <thead>
                                 <tr>
-                                    <td style="padding: 8px; border-bottom: 1px solid #eee;">Leads:</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${s.growth.leads}</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #eee;">Customers:</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${s.growth.customers}</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #eee;">Sales:</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">$${s.growth.sales}</td>
+                                    <th style="${thStyle} width: 20%;">Phase</th>
+                                    <th style="${thStyle} width: 15%;">Status</th>
+                                    <th style="${thStyle}">Key Tasks</th>
                                 </tr>
-                            </table>
-                        </div>
+                            </thead>
+                            <tbody>
+                                ${s.checklist.map(stage => {
+                                    const completedTasks = stage.tasks.filter(t => t.done).length;
+                                    const totalTasks = stage.tasks.length;
+                                    const isComplete = completedTasks === totalTasks;
+                                    const statusColor = isComplete ? '#dcfce7' : (completedTasks > 0 ? '#fff7ed' : '#f1f5f9');
+                                    const statusText = isComplete ? 'Completed' : (completedTasks > 0 ? 'In Progress' : 'Pending');
 
-                        <!-- Checklist -->
-                         <div style="margin-bottom: 30px;">
-                            <h3 style="border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Checklist Progress</h3>
-                            ${s.checklist.map(stage => `
-                                <div style="margin-bottom: 15px;">
-                                    <h4 style="margin-bottom: 5px; color: #475569;">${stage.stage}</h4>
-                                    ${stage.tasks.map(t => `
-                                        <div style="font-size: 12px; margin-bottom: 2px;">
-                                            ${t.done ? '☑' : '☐'} ${t.text}
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `).join('')}
+                                    return `
+                                    <tr>
+                                        <td style="${tdStyle} font-weight: bold;">${stage.stage}</td>
+                                        <td style="${tdStyle} background-color: ${statusColor}; text-align: center; font-size: 10px; font-weight: bold;">${statusText}</td>
+                                        <td style="${tdStyle}">
+                                            <ul style="margin: 0; padding-left: 15px; font-size: 10px;">
+                                                ${stage.tasks.map(t => `
+                                                    <li style="color: ${t.done ? '#64748b' : '#000'}; text-decoration: ${t.done ? 'line-through' : 'none'}">${t.text}</li>
+                                                `).join('')}
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+
+                        <!-- 3. FINANCIAL HEALTH -->
+                        <div style="${sectionTitle}">3. Financial Health</div>
+                        <table style="${tableStyle}">
+                            <tr>
+                                <th style="${thStyle}">Total Budget</th>
+                                <th style="${thStyle}">Monthly Burn</th>
+                                <th style="${thStyle}">Current Revenue</th>
+                                <th style="${thStyle}">Cash Remaining</th>
+                            </tr>
+                            <tr>
+                                <td style="${tdStyle} font-size: 14px;">$${s.finance.budget}</td>
+                                <td style="${tdStyle} font-size: 14px; color: #dc2626;">$${s.finance.monthlyCost}</td>
+                                <td style="${tdStyle} font-size: 14px; color: #059669;">$${s.finance.currentRevenue}</td>
+                                <td style="${tdStyle} font-size: 14px; font-weight: bold;">$${cashLeft}</td>
+                            </tr>
+                        </table>
+
+                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Expense Breakdown:</div>
+                        <table style="${tableStyle}">
+                            <thead>
+                                <tr>
+                                    <th style="${thStyle}">Item Description</th>
+                                    <th style="${thStyle} text-align: right;">Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${s.finance.expenses.length > 0 ? s.finance.expenses.map(ex => `
+                                    <tr>
+                                        <td style="${tdStyle}">${ex.item}</td>
+                                        <td style="${tdStyle} text-align: right;">$${ex.cost}</td>
+                                    </tr>
+                                `).join('') : `<tr><td colspan="2" style="${tdStyle} text-align: center;">No expenses recorded</td></tr>`}
+                            </tbody>
+                        </table>
+
+                        <!-- 4. GROWTH & MARKETING -->
+                        <div style="${sectionTitle}">4. Growth & Marketing</div>
+                        <table style="${tableStyle}">
+                            <tr>
+                                <th style="${thStyle}">Total Leads</th>
+                                <td style="${tdStyle}">${s.growth.leads}</td>
+                                <th style="${thStyle}">Paying Customers</th>
+                                <td style="${tdStyle}">${s.growth.customers}</td>
+                                <th style="${thStyle}">Conversion Rate</th>
+                                <td style="${tdStyle}">${s.growth.leads > 0 ? ((s.growth.customers / s.growth.leads)*100).toFixed(1) : 0}%</td>
+                            </tr>
+                        </table>
+                        
+                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Active Channels:</div>
+                        <table style="${tableStyle}">
+                             <thead>
+                                <tr>
+                                    <th style="${thStyle}">Channel Name</th>
+                                    <th style="${thStyle}">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${s.marketing.channels.length > 0 ? s.marketing.channels.map(ch => `
+                                    <tr>
+                                        <td style="${tdStyle}">${ch.name}</td>
+                                        <td style="${tdStyle}">${ch.status}</td>
+                                    </tr>
+                                `).join('') : `<tr><td colspan="2" style="${tdStyle} text-align: center;">No channels defined</td></tr>`}
+                            </tbody>
+                        </table>
+
+                        <div style="margin-top: 20px; font-size: 10px; color: #94a3b8; text-align: center;">
+                            Generated using Startup Founder OS
                         </div>
                     </div>
                 `;
 
                 container.innerHTML = html;
 
-                // PDF Options
                 const opt = {
                     margin:       10,
-                    filename:     `${s.name.replace(/\s+/g, '_')}_Report.pdf`,
+                    filename:     `${s.name.replace(/\s+/g, '_')}_MasterReport.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2 },
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
 
-                // Generate
                 html2pdf().set(opt).from(container).save().then(() => {
-                    container.innerHTML = ''; // Cleanup
+                    container.innerHTML = ''; 
                 });
             }
 
+            // ... (Rest of existing logic methods like calculateProgress etc. remain same) ...
+            
             calculateProgress(startup) {
                 let total = 0;
                 let completed = 0;
@@ -870,8 +929,6 @@
             calculateExpenses(startup) {
                 return startup.finance.expenses.reduce((acc, curr) => acc + Number(curr.cost), 0);
             }
-
-            // --- Generic Update Methods ---
             
             toggleTask(id, stageIdx, taskIdx) {
                 const s = this.getStartup(id);
@@ -882,7 +939,6 @@
 
             updateField(id, path, value) {
                 const s = this.getStartup(id);
-                // Handle nested keys like 'marketing.strategy' or 'growth.leads'
                 const keys = path.split('.');
                 let target = s;
                 for (let i = 0; i < keys.length - 1; i++) {
@@ -890,12 +946,12 @@
                 }
                 target[keys[keys.length - 1]] = value;
                 this.save();
-                // We re-render on blur/change to reflect computed values if needed
                 if(path.includes('finance') || path.includes('growth')) {
                      this.renderStartup(id);
                 }
             }
-
+            
+            // CRUD wrappers
             addChannel(id) {
                 const s = this.getStartup(id);
                 s.marketing.channels.push({ name: '', status: 'Planned' });
@@ -913,7 +969,6 @@
                 this.save();
                 this.renderStartup(id);
             }
-
             addExpense(id) {
                 const s = this.getStartup(id);
                 s.finance.expenses.push({ item: 'Expense Item', cost: 0 });
@@ -924,7 +979,6 @@
                 const s = this.getStartup(id);
                 s.finance.expenses[idx][field] = value;
                 this.save();
-                // Rerender for total calculation
                 if(field === 'cost') this.renderStartup(id);
             }
             removeExpense(id, idx) {
@@ -933,7 +987,6 @@
                 this.save();
                 this.renderStartup(id);
             }
-
             addRound(id) {
                 const s = this.getStartup(id);
                 s.investment.rounds.push({ name: '', amount: 0, investor: '' });
@@ -951,8 +1004,6 @@
                 this.save();
                 this.renderStartup(id);
             }
-
-            // Modal
             openModal(id) { document.getElementById(id).classList.remove('hidden'); }
             closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         }
