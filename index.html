@@ -1,15 +1,15 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Startup Founder OS | Cloud Sync</title>
+    <title>Founder OS | The Execution Engine</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,14 +17,25 @@
     <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Marked JS -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Chart.js (New for Visuals) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Space Grotesk', 'sans-serif'] },
                     colors: {
-                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' },
-                        accent: { 500: '#8b5cf6' }
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 900: '#14532d' }, 
+                        ai: { 50: '#f5f3ff', 100: '#ede9fe', 500: '#8b5cf6', 600: '#7c3aed', 900: '#4c1d95' },
+                        gold: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04' },
+                        dark: { 800: '#1e293b', 900: '#0f172a' }
                     }
                 }
             }
@@ -33,602 +44,476 @@
 
     <style>
         body { background-color: #f8fafc; -webkit-print-color-adjust: exact; }
-        @media (min-width: 768px) {
-            ::-webkit-scrollbar { width: 8px; height: 8px; }
-            ::-webkit-scrollbar-track { background: #f1f1f1; }
-            ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-            ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        #pdf-export-container { position: absolute; left: -9999px; top: 0; width: 210mm; background: white; padding: 0; z-index: -1; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-checkbox input:checked + div { background-color: #16a34a; border-color: #16a34a; }
+        .custom-checkbox input:checked + div svg { display: block; }
+        
+        /* Game Mode Styles */
+        .level-card { transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .level-card.active { border-left-color: #22c55e; background: white; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transform: scale(1.01); }
+        .level-card.locked { opacity: 0.6; pointer-events: none; filter: grayscale(1); background: #f1f5f9; }
+        .level-card.completed { border-left-color: #ca8a04; }
+        
+        /* Chat & Canvas Styles */
+        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+        .chat-user { background-color: #1e293b; color: white; border-bottom-right-radius: 4px; align-self: flex-end; margin-left: auto; }
+        .chat-ai { background-color: #f3f4f6; color: #1f2937; border-bottom-left-radius: 4px; align-self: flex-start; border: 1px solid #e5e7eb; margin-right: auto; }
+        .canvas-card { height: 100%; display: flex; flex-direction: column; }
+        .canvas-textarea { flex: 1; resize: none; border: none; background: transparent; outline: none; font-size: 0.875rem; line-height: 1.5; padding-top: 0.5rem; }
+        .canvas-textarea:focus { background: #f8fafc; }
+        
+        .typing-dot { width: 6px; height: 6px; background-color: #9ca3af; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        
+        /* Range Slider for Simulator */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #22c55e; cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e2e8f0; border-radius: 2px; }
+        
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
-<body class="text-slate-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-slate-50">
+<body class="text-slate-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-slate-50 font-sans">
 
     <!-- Sidebar -->
-    <aside class="md:w-20 w-full bg-slate-900 flex md:flex-col flex-row items-center justify-between md:justify-start md:py-6 py-3 px-4 shadow-xl z-50 no-print flex-shrink-0 order-2 md:order-1 fixed md:relative bottom-0 h-16 md:h-full">
-        <div class="md:mb-8 text-brand-500 text-2xl font-bold cursor-pointer hover:scale-110 transition md:block hidden" onclick="window.app.renderDashboard()" title="Dashboard">
-            <i class="fa-solid fa-layer-group"></i>
+    <aside class="md:w-20 w-full bg-dark-900 flex md:flex-col flex-row items-center justify-between md:justify-start md:py-6 py-3 px-4 shadow-2xl z-50 no-print flex-shrink-0 order-2 md:order-1 fixed md:relative bottom-0 h-16 md:h-full">
+        <div class="md:mb-8 text-brand-500 text-2xl font-bold cursor-pointer hover:scale-110 transition md:block hidden" onclick="window.app.renderDashboard()" title="Dashboard"><i class="fa-solid fa-cube"></i></div>
+        <div id="startup-list" class="flex md:flex-col flex-row gap-3 md:w-full md:px-2 overflow-x-auto md:overflow-y-auto scrollbar-hide items-center md:flex-1 justify-center md:justify-start"></div>
+        <div class="flex flex-row md:flex-col gap-3">
+             <button onclick="window.app.openSettings()" class="md:mt-auto p-3 text-slate-400 hover:text-white transition" title="Settings"><i class="fa-solid fa-gear"></i></button>
+            <button onclick="window.app.openModal('createModal')" class="p-3 bg-brand-600 text-white rounded-xl shadow-lg hover:bg-brand-500 transition transform hover:scale-105 flex flex-col items-center justify-center md:w-12 md:h-12 w-10 h-10" title="Start New Machine"><i class="fa-solid fa-plus"></i></button>
         </div>
-        <div class="text-brand-500 text-xl font-bold cursor-pointer md:hidden flex flex-col items-center" onclick="window.app.renderDashboard()">
-            <i class="fa-solid fa-layer-group"></i>
-            <span class="text-[10px] mt-1 font-normal">Home</span>
-        </div>
-        <div id="startup-list" class="flex md:flex-col flex-row gap-4 md:w-full md:px-2 overflow-x-auto md:overflow-y-auto scrollbar-hide items-center md:flex-1 justify-center md:justify-start"></div>
-        <button onclick="window.app.openModal('createModal')" class="md:mt-4 p-2 md:p-3 bg-brand-600 text-white rounded-xl shadow-lg hover:bg-brand-500 transition transform hover:scale-105 flex flex-col items-center justify-center md:w-auto w-10 h-10" title="Add New Startup">
-            <i class="fa-solid fa-plus text-sm md:text-base"></i>
-        </button>
     </aside>
 
     <!-- Main Content -->
-    <main id="main-view" class="flex-1 overflow-y-auto relative p-0 bg-slate-50 w-full order-1 md:order-2 pb-16 md:pb-0">
-        <!-- Loader -->
-        <div class="h-full flex flex-col items-center justify-center text-slate-400">
-            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-500 mb-4"></i>
-            <p>Loading Cloud Data...</p>
-        </div>
-    </main>
+    <main id="main-view" class="flex-1 overflow-y-auto relative p-0 w-full order-1 md:order-2 pb-20 md:pb-0"><!-- Injected via JS --></main>
 
     <!-- PDF Container -->
-    <div id="pdf-export-container"></div>
+    <div id="pdf-export-container" style="position:fixed; left:-9999px; top:0; width: 210mm; background:white; z-index:-1;"></div>
 
-    <!-- Modal -->
-    <div id="createModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex justify-center items-center backdrop-blur-sm no-print p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md animate-fade-in">
-            <h2 class="text-xl md:text-2xl font-bold mb-4 text-slate-800"><i class="fa-solid fa-rocket text-brand-500 mr-2"></i>New Venture</h2>
+    <!-- Modal: Create Startup -->
+    <div id="createModal" class="fixed inset-0 bg-dark-900/80 hidden z-[100] flex justify-center items-center backdrop-blur-sm no-print p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-fade-in border border-slate-200">
+            <h2 class="text-2xl font-bold mb-6 text-slate-900 font-display"><i class="fa-solid fa-bolt text-brand-500 mr-2"></i>Ignite New Engine</h2>
             <div class="space-y-4">
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Startup Name</label><input type="text" id="newStartupName" class="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-brand-500"></div>
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Founder Name</label><input type="text" id="newFounderName" class="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-brand-500"></div>
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Industry</label>
-                    <select id="newStartupIndustry" class="w-full border border-slate-300 rounded-lg p-3 outline-none bg-white">
-                        <option>SaaS / Tech</option><option>E-commerce</option><option>Service Agency</option><option>Fintech</option><option>EdTech</option><option>Other</option>
-                    </select>
-                </div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Startup Name</label><input type="text" id="newStartupName" class="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-brand-500 transition" placeholder="e.g. Unicorn AI"></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Industry</label><select id="newStartupIndustry" class="w-full border border-slate-300 rounded-lg p-3 outline-none bg-white"><option>SaaS / Software</option><option>E-commerce</option><option>Service / Agency</option><option>Fintech</option><option>EdTech</option><option>Other</option></select></div>
             </div>
             <div class="flex justify-end gap-3 mt-8">
-                <button onclick="window.app.closeModal('createModal')" class="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancel</button>
-                <button onclick="window.app.createStartup()" class="px-5 py-2.5 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition">Create</button>
+                <button onclick="window.app.closeModal('createModal')" class="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg font-medium">Cancel</button>
+                <button onclick="window.app.createStartup()" class="px-6 py-2.5 bg-brand-600 text-white font-bold rounded-lg shadow-lg hover:bg-brand-500 transition">Launch 🚀</button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- AI Modal -->
+    <div id="aiModal" class="fixed inset-0 bg-dark-900/80 hidden z-[100] flex justify-center items-center backdrop-blur-sm no-print p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] animate-fade-in border border-slate-200 flex flex-col overflow-hidden">
+            <div class="bg-ai-50 px-6 py-4 border-b border-ai-100 flex justify-between items-center">
+                <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-ai-600 text-white flex items-center justify-center text-lg shadow-lg"><i class="fa-solid fa-sparkles"></i></div><div><h2 class="text-lg font-bold text-slate-900 font-display">AI Co-Founder</h2><p class="text-xs text-ai-600 font-medium">Powered by Gemini</p></div></div>
+                <button onclick="window.app.closeModal('aiModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="chat-history" class="flex-1 overflow-y-auto p-6 space-y-4 bg-white"><div class="chat-bubble chat-ai shadow-sm">Hello! I know your startup context. How can I help you execute today?</div><div id="ai-quick-actions" class="grid grid-cols-2 gap-2 mt-4"></div></div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-2">
+                <input type="text" id="ai-input" class="flex-1 border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-ai-500" placeholder="Ask AI..." onkeypress="if(event.key === 'Enter') window.app.sendAIMessage()">
+                <button onclick="window.app.sendAIMessage()" class="bg-ai-600 text-white px-5 rounded-xl hover:bg-ai-700 font-bold"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
 
-        // Constants
-        const DEFAULT_CHECKLIST = [
-            { stage: "Validation", tasks: [{ id: 1, text: "Define Problem & Solution", done: false }, { id: 2, text: "Competitor Analysis", done: false }, { id: 3, text: "Define Target Persona", done: false }] },
-            { stage: "MVP Build", tasks: [{ id: 4, text: "Wireframing & UI Design", done: false }, { id: 5, text: "Develop Core Features", done: false }, { id: 6, text: "Set up Analytics", done: false }] },
-            { stage: "Launch", tasks: [{ id: 7, text: "Beta Launch (Waitlist)", done: false }, { id: 8, text: "Social Media Setup", done: false }, { id: 9, text: "Official Public Launch", done: false }] }
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-dark-900/80 hidden z-[100] flex justify-center items-center backdrop-blur-sm no-print p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-fade-in">
+            <h3 class="text-lg font-bold mb-4">Settings</h3>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Gemini API Key</label>
+            <input type="password" id="apiKeyInput" class="w-full border border-slate-300 rounded-lg p-2 mb-2 text-sm" placeholder="Paste API Key here">
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="window.app.closeModal('settingsModal')" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Close</button>
+                <button onclick="window.app.saveSettings()" class="px-4 py-2 text-sm bg-slate-900 text-white rounded-lg">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = ""; 
+
+        const STARTUP_STAGES = [
+            { stage: "Stage 0: Personal Foundation", desc: "Clarity & Stability before you start.", tasks: [{ id: '0a', text: "Define 'Why' & Commitment", done: false }, { id: '0b', text: "Calculate Personal Runway", done: false }, { id: '0c', text: "Ensure Support System", done: false }] },
+            { stage: "Stage 1: Problem Discovery", desc: "Find a painful problem.", tasks: [{ id: '1a', text: "Identify Target Group (ICP)", done: false }, { id: '1b', text: "Conduct 20 Discovery Interviews", done: false }, { id: '1c', text: "Confirm 'High Frequency' Pain", done: false }] },
+            { stage: "Stage 2: Validation", desc: "Sell before you build.", tasks: [{ id: '2a', text: "Create Landing Page / Offer", done: false }, { id: '2b', text: "Get Pre-orders or Paid Pilot", done: false }, { id: '2c', text: "Concierge MVP (Manual)", done: false }] },
+            { stage: "Stage 3: MVP Build", desc: "Build fast, solve one thing.", tasks: [{ id: '3a', text: "Define Core Problem & User", done: false }, { id: '3b', text: "Build One Measurable Outcome", done: false }, { id: '3c', text: "Setup Basic Analytics", done: false }] },
+            { stage: "Stage 4: First Revenue", desc: "Make it repeatable.", tasks: [{ id: '4a', text: "Refine Sales Script", done: false }, { id: '4b', text: "Run Pricing Experiments", done: false }, { id: '4c', text: "Onboard 10 Happy Customers", done: false }] },
+            { stage: "Stage 5: Financial Control", desc: "Cash is King.", tasks: [{ id: '5a', text: "Setup Income/Expense Tracker", done: false }, { id: '5b', text: "Calculate Burn Rate", done: false }, { id: '5c', text: "Review Profit Margins", done: false }] },
+            { stage: "Stage 6: Systemization", desc: "Hustle to System.", tasks: [{ id: '6a', text: "Create Marketing SOPs", done: false }, { id: '6b', text: "Create Sales SOPs", done: false }, { id: '6c', text: "Automate Tasks", done: false }] },
+            { stage: "Stage 7: PMF Signal", desc: "Retention & Referral.", tasks: [{ id: '7a', text: "Measure Retention Rate", done: false }, { id: '7b', text: "Verify Organic Referrals", done: false }, { id: '7c', text: "Decrease Sales Effort", done: false }] },
+            { stage: "Stage 8: Scale", desc: "Pour fuel on the fire.", tasks: [{ id: '8a', text: "Positive Unit Economics", done: false }, { id: '8b', text: "Predictable Channels", done: false }, { id: '8c', text: "Hire Specialists", done: false }] }
         ];
 
-        class StartupOS {
+        // Lean Canvas Defaults
+        const CANVAS_DEFAULTS = {
+            problem: "List top 3 problems.", solution: "Top 3 features.", metrics: "Key numbers to track.", uvp: "Single clear message.", advantage: "Can't be easily copied.", channels: "Path to customers.", segments: "Target customers.", cost: "Hosting, People, etc.", revenue: "Subscription, Ads, etc."
+        };
+
+        class StartupMachine {
             constructor() {
-                this.startups = [];
-                this.activeStartupId = null;
-                this.activeTab = 'overview';
-                this.user = null;
-                this.unsubscribe = null;
-                
-                // Initialize Firebase
-                const firebaseConfig = JSON.parse(__firebase_config);
-                this.app = initializeApp(firebaseConfig);
-                this.auth = getAuth(this.app);
-                this.db = getFirestore(this.app);
-                this.appId = typeof __app_id !== 'undefined' ? __app_id : 'startup-os';
-                
-                this.initAuth();
+                this.startups = JSON.parse(localStorage.getItem('startup_os_v6')) || [];
+                this.userApiKey = localStorage.getItem('gemini_api_key') || '';
+                this.activeId = null;
+                this.activeView = 'journey'; 
+                this.activeFinanceTab = 'overview';
+                this.chartInstance = null; // Store chart instance
+                this.streak = localStorage.getItem('founder_streak') || 0;
+                this.lastLogin = localStorage.getItem('last_login_date');
+                this.checkStreak();
+                this.init();
             }
 
-            async initAuth() {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(this.auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(this.auth);
-                }
-
-                onAuthStateChanged(this.auth, (user) => {
-                    if (user) {
-                        this.user = user;
-                        this.setupRealtimeListener();
-                    }
-                });
-            }
-
-            setupRealtimeListener() {
-                if (this.unsubscribe) this.unsubscribe();
-                
-                // Using Firestore path: artifacts/{appId}/users/{userId}/startups
-                const q = collection(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups');
-                
-                this.unsubscribe = onSnapshot(q, (snapshot) => {
-                    this.startups = [];
-                    snapshot.forEach((doc) => {
-                        this.startups.push({ id: doc.id, ...doc.data() });
-                    });
-                    
-                    // Initial render or re-render
-                    if (this.activeStartupId && !this.startups.find(s => s.id === this.activeStartupId)) {
-                        this.activeStartupId = null; // Reset if active startup was deleted
-                    }
-                    
-                    this.renderSidebar();
-                    if (this.activeStartupId) {
-                        this.renderStartup(this.activeStartupId);
+            checkStreak() {
+                const today = new Date().toDateString();
+                if (this.lastLogin !== today) {
+                    if (this.lastLogin === new Date(Date.now() - 86400000).toDateString()) {
+                        this.streak++;
                     } else {
-                        this.renderDashboard();
+                        this.streak = 1; // Reset or Start
                     }
-                }, (error) => {
-                    console.error("Error fetching data:", error);
-                });
-            }
-
-            // --- Database Actions ---
-
-            async createStartup() {
-                const name = document.getElementById('newStartupName').value;
-                const founder = document.getElementById('newFounderName').value;
-                const industry = document.getElementById('newStartupIndustry').value;
-                
-                if (!name) return alert("Name required!");
-
-                const newStartup = {
-                    name, founder: founder || "Founder", industry,
-                    logo: null, founded: new Date().toLocaleDateString(),
-                    model: "Product", stage: "Idea", targetMarket: "", launchDate: "",
-                    checklist: DEFAULT_CHECKLIST,
-                    finance: { budget: 0, monthlyCost: 0, currentRevenue: 0, expenses: [] },
-                    marketing: { strategy: "", channels: [] },
-                    growth: { leads: 0, sales: 0, customers: 0 },
-                    investment: { rounds: [] },
-                    notes: ""
-                };
-
-                try {
-                    const docRef = await addDoc(collection(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups'), newStartup);
-                    this.closeModal('createModal');
-                    this.activeStartupId = docRef.id; // Auto switch to new
-                    document.getElementById('newStartupName').value = '';
-                } catch (e) {
-                    console.error("Error adding doc: ", e);
-                    alert("Could not save to cloud.");
+                    localStorage.setItem('founder_streak', this.streak);
+                    localStorage.setItem('last_login_date', today);
                 }
             }
 
-            async deleteStartup(id) {
-                if(confirm("Delete this project? This cannot be undone.")) {
-                    await deleteDoc(doc(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups', id));
-                    if(this.activeStartupId === id) this.activeStartupId = null;
-                }
-            }
+            init() { this.renderSidebar(); this.renderHome(); }
+            save() { localStorage.setItem('startup_os_v6', JSON.stringify(this.startups)); this.renderSidebar(); }
 
-            async updateCloud(id, data) {
-                // Debounce could be added here for performance
-                const docRef = doc(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups', id);
-                await updateDoc(docRef, data);
-            }
-
-            // --- Helpers for Updates ---
+            // Navigation
+            openSettings() { document.getElementById('apiKeyInput').value = this.userApiKey; this.openModal('settingsModal'); }
+            saveSettings() { this.userApiKey = document.getElementById('apiKeyInput').value; localStorage.setItem('gemini_api_key', this.userApiKey); this.closeModal('settingsModal'); }
+            openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+            closeModal(id) { document.getElementById(id).classList.add('hidden'); }
             
+            // CRUD
+            createStartup() {
+                const name = document.getElementById('newStartupName').value;
+                const industry = document.getElementById('newStartupIndustry').value;
+                if (!name) return alert("Required!");
+                const newMachine = {
+                    id: Date.now().toString(), name, industry, logo: null, founded: new Date().toLocaleDateString(),
+                    level: 1, 
+                    checklist: JSON.parse(JSON.stringify(STARTUP_STAGES)),
+                    finance: { investments: [], income: [], expenses: [], targetRevenue: 0 },
+                    founder: { vision: "", commitment: "", risk: "", runway: { monthlyCost: 0, savings: 0, debt: 0, income: 0 } },
+                    strategy: { problem: "", target: "", interviews: 0, validation: { landing: false, pilot: false, paid: false } },
+                    canvas: { ...CANVAS_DEFAULTS }
+                };
+                this.startups.push(newMachine); this.save(); this.closeModal('createModal'); this.openStartup(newMachine.id);
+                document.getElementById('newStartupName').value = '';
+            }
+            deleteStartup(id) { if(confirm("Delete?")) { this.startups = this.startups.filter(s => s.id !== id); this.save(); this.renderHome(); } }
+            updateLogo(id, input) { const file = input.files[0]; if(file) { const reader = new FileReader(); reader.onloadend = () => { this.getStartup(id).logo = reader.result; this.save(); this.renderStartup(id); }; reader.readAsDataURL(file); } }
             getStartup(id) { return this.startups.find(s => s.id === id); }
 
-            updateField(id, path, value) {
-                const s = this.getStartup(id);
-                // We need to update local object for immediate UI feedback (if we don't wait for snapshot)
-                // But mainly we construct the update object for Firestore
-                // Firestore supports dot notation for nested updates!
-                const updateObj = {};
-                updateObj[path] = value;
-                
-                this.updateCloud(id, updateObj);
-            }
-
-            updateLogo(id, input) {
-                const file = input.files[0];
-                if (file) {
-                    if (file.size > 800000) return alert("Image too large! Use < 800KB"); // Firestore doc limit safety
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        this.updateCloud(id, { logo: reader.result });
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-
-            toggleTask(id, stageIdx, taskIdx) {
-                const s = this.getStartup(id);
-                const newChecklist = [...s.checklist];
-                newChecklist[stageIdx].tasks[taskIdx].done = !newChecklist[stageIdx].tasks[taskIdx].done;
-                this.updateCloud(id, { checklist: newChecklist });
-            }
-
-            // Arrays (Expenses, Channels, Rounds) - Read, Modify, Write whole array
-            updateArray(id, arrayName, newArray) {
-                const updateObj = {};
-                updateObj[arrayName] = newArray;
-                this.updateCloud(id, updateObj);
-            }
-
-            // Wrapper for array manipulations to keep UI logic clean
-            modifyArrayItem(id, listType, idx, field, value) {
-                const s = this.getStartup(id);
-                let list;
-                let path;
-                
-                if (listType === 'marketing') { list = [...s.marketing.channels]; path = 'marketing.channels'; }
-                else if (listType === 'finance') { list = [...s.finance.expenses]; path = 'finance.expenses'; }
-                else if (listType === 'investment') { list = [...s.investment.rounds]; path = 'investment.rounds'; }
-
-                if (list[idx]) {
-                    list[idx][field] = value;
-                    this.updateCloud(id, { [path]: list });
-                }
-            }
-            
-            addItem(id, listType) {
-                const s = this.getStartup(id);
-                if (listType === 'marketing') {
-                    const list = s.marketing.channels ? [...s.marketing.channels] : [];
-                    list.push({ name: '', status: 'Planned' });
-                    this.updateCloud(id, { 'marketing.channels': list });
-                } else if (listType === 'finance') {
-                    const list = s.finance.expenses ? [...s.finance.expenses] : [];
-                    list.push({ item: 'New Item', cost: 0 });
-                    this.updateCloud(id, { 'finance.expenses': list });
-                } else if (listType === 'investment') {
-                    const list = s.investment.rounds ? [...s.investment.rounds] : [];
-                    list.push({ name: '', amount: 0, investor: '' });
-                    this.updateCloud(id, { 'investment.rounds': list });
-                }
-            }
-
-            removeItem(id, listType, idx) {
-                const s = this.getStartup(id);
-                if (listType === 'marketing') {
-                    const list = [...s.marketing.channels];
-                    list.splice(idx, 1);
-                    this.updateCloud(id, { 'marketing.channels': list });
-                } else if (listType === 'finance') {
-                    const list = [...s.finance.expenses];
-                    list.splice(idx, 1);
-                    this.updateCloud(id, { 'finance.expenses': list });
-                } else if (listType === 'investment') {
-                    const list = [...s.investment.rounds];
-                    list.splice(idx, 1);
-                    this.updateCloud(id, { 'investment.rounds': list });
-                }
-            }
-
-            // --- Rendering (Same as before but accessing this.startups) ---
-
+            // Renderers
             renderSidebar() {
-                const list = document.getElementById('startup-list');
-                list.innerHTML = '';
+                const list = document.getElementById('startup-list'); list.innerHTML = '';
                 this.startups.forEach(s => {
-                    const isActive = this.activeStartupId === s.id;
+                    const active = this.activeId === s.id;
                     const div = document.createElement('div');
-                    div.className = `w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center cursor-pointer transition border-2 shadow-sm flex-shrink-0 ${isActive ? 'border-brand-500 bg-white ring-2 ring-brand-500/30' : 'border-slate-700 bg-slate-800 hover:border-slate-500'}`;
+                    div.className = `w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center cursor-pointer transition border-2 flex-shrink-0 ${active ? 'border-brand-500 bg-white shadow-lg' : 'border-slate-700 bg-slate-800 hover:border-slate-500'}`;
                     div.onclick = () => this.openStartup(s.id);
-                    div.title = s.name;
-                    div.innerHTML = s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover rounded-[10px]">` : `<span class="${isActive ? 'text-brand-600' : 'text-slate-400'} font-bold text-sm md:text-lg">${s.name.substring(0,2).toUpperCase()}</span>`;
+                    div.innerHTML = s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover rounded-[10px]">` : `<span class="${active ? 'text-brand-600' : 'text-slate-400'} font-bold font-display text-lg">${s.name.substring(0,2).toUpperCase()}</span>`;
                     list.appendChild(div);
                 });
             }
 
-            renderDashboard() {
-                this.activeStartupId = null;
-                const main = document.getElementById('main-view');
-                if (this.startups.length === 0) {
-                     main.innerHTML = `
-                        <div class="h-full flex flex-col items-center justify-center p-8 text-center">
-                            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-3xl text-slate-300 mb-4"><i class="fa-solid fa-rocket"></i></div>
-                            <h2 class="text-2xl font-bold text-slate-800">No Startups Yet</h2>
-                            <p class="text-slate-500 mb-6">Start your journey by adding your first venture.</p>
-                            <button onclick="window.app.openModal('createModal')" class="bg-brand-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-brand-700">Create New Venture</button>
-                        </div>`;
-                     return;
-                }
-                
-                main.innerHTML = `
-                    <div class="p-6 md:p-12 max-w-7xl mx-auto fade-in pb-20 md:pb-12">
-                        <header class="mb-8 md:mb-12 text-center md:text-left">
-                            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Founder OS <span class="text-brand-500 text-sm align-top">CLOUD</span></h1>
-                            <p class="text-slate-500 mt-2 text-base md:text-lg">All your startups, synced & secure.</p>
-                        </header>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div onclick="window.app.openModal('createModal')" class="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition min-h-[200px] group">
-                                <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition"><i class="fa-solid fa-plus"></i></div>
-                                <h3 class="font-bold text-slate-700">Add New Venture</h3>
-                            </div>
-                            ${this.startups.map(s => {
-                                const progress = this.calculateProgress(s);
-                                return `
-                                <div onclick="window.app.openStartup('${s.id}')" class="bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 p-6 cursor-pointer transition flex flex-col justify-between group relative overflow-hidden min-h-[220px]">
-                                    <div class="flex items-start justify-between mb-4">
-                                        <div class="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-inner">
-                                            ${s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover">` : `<span class="font-bold text-slate-400 text-xl">${s.name.substring(0,2).toUpperCase()}</span>`}
-                                        </div>
-                                        <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 uppercase tracking-wide">${s.stage}</span>
-                                    </div>
-                                    <div><h3 class="font-bold text-xl text-slate-800 mb-1 group-hover:text-brand-600 transition truncate">${s.name}</h3><p class="text-sm text-slate-500">${s.industry}</p></div>
-                                    <div class="mt-4">
-                                        <div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Launch Readiness</span><span class="font-mono">${progress}%</span></div>
-                                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden"><div class="bg-brand-500 h-2 rounded-full" style="width: ${progress}%"></div></div>
-                                    </div>
-                                    <button onclick="event.stopPropagation(); window.app.deleteStartup('${s.id}')" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 md:opacity-0 md:group-hover:opacity-100 transition z-10"><i class="fa-solid fa-trash"></i></button>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
+            renderHome() {
+                this.activeId = null; document.getElementById('main-view').innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50">
+                    <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl text-brand-500 shadow-xl mb-6 animate-bounce"><i class="fa-solid fa-power-off"></i></div>
+                    <h1 class="text-3xl md:text-5xl font-bold text-slate-900 font-display mb-3">Startup OS</h1>
+                    <p class="text-slate-500 text-lg max-w-md mb-8">Gamified Execution Engine.</p>
+                    <div class="mb-8 flex items-center justify-center gap-2 text-slate-400 text-sm font-bold bg-slate-200 px-4 py-2 rounded-full"><i class="fa-solid fa-fire text-orange-500"></i> ${this.streak} Day Streak</div>
+                    <button onclick="window.app.openModal('createModal')" class="bg-brand-600 text-white px-8 py-4 rounded-xl shadow-xl hover:-translate-y-1 transition font-bold text-lg">Initialize Engine</button>
+                </div>`;
             }
 
-            openStartup(id) {
-                this.activeStartupId = id;
-                this.renderSidebar();
-                this.renderStartup(id);
-            }
+            openStartup(id) { this.activeId = id; this.renderSidebar(); this.renderStartup(id); }
+            switchView(view) { this.activeView = view; this.renderStartup(this.activeId); }
+            switchFinanceTab(tab) { this.activeFinanceTab = tab; this.renderStartup(this.activeId); }
 
             renderStartup(id) {
                 const s = this.getStartup(id);
-                if (!s) return this.renderDashboard();
-                const main = document.getElementById('main-view');
-                main.innerHTML = `
-                    <div class="h-full flex flex-col bg-white">
-                        <div class="bg-white border-b border-slate-200 px-4 md:px-6 py-4 flex justify-between items-center no-print sticky top-0 z-20 shadow-sm">
-                            <div class="flex items-center gap-3 md:gap-4 overflow-hidden">
-                                <div class="relative group cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                    ${s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-camera text-slate-400"></i>`}
-                                    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="window.app.updateLogo('${s.id}', this)">
-                                </div>
-                                <div class="min-w-0">
-                                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight truncate">${s.name}</h1>
-                                    <div class="text-xs text-slate-500 flex items-center gap-1 md:gap-2 truncate">
-                                        <span class="truncate">${s.founder}</span> <span class="hidden md:inline">•</span> <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 hidden md:inline-block">${s.stage}</span>
-                                    </div>
+                // Tabs
+                const tabs = [ 
+                    { id: 'journey', label: 'Founder Journey', icon: 'fa-route' },
+                    { id: 'roadmap', label: 'Checklist', icon: 'fa-list-check' }, 
+                    { id: 'canvas', label: 'Lean Canvas', icon: 'fa-table-cells-large' }, 
+                    { id: 'finance', label: 'Finance', icon: 'fa-coins' }, 
+                    { id: 'founder', label: 'Founder', icon: 'fa-user-astronaut' }
+                ];
+                
+                document.getElementById('main-view').innerHTML = `
+                    <div class="h-full flex flex-col bg-white md:bg-slate-50">
+                        <div class="bg-white border-b border-slate-200 px-4 md:px-8 py-3 flex flex-col md:flex-row justify-between items-center sticky top-0 z-30 shadow-sm">
+                            <div class="flex items-center gap-4 w-full md:w-auto mb-3 md:mb-0">
+                                <div class="relative group cursor-pointer w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">${s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-camera text-slate-400"></i>`}<input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="window.app.updateLogo('${s.id}', this)"></div>
+                                <div>
+                                    <h1 class="text-lg font-bold text-slate-900 font-display leading-tight">${s.name}</h1>
+                                    <span class="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">Level ${s.level}</span>
                                 </div>
                             </div>
-                            <div class="flex gap-2 flex-shrink-0">
-                                <button onclick="window.app.downloadPDF('${s.id}')" class="flex items-center gap-1 md:gap-2 px-3 py-2 bg-brand-50 text-brand-700 font-medium rounded-lg hover:bg-brand-100 transition text-xs md:text-sm"><i class="fa-solid fa-download"></i> <span class="hidden md:inline">Report</span></button>
-                                <button onclick="window.app.renderDashboard()" class="px-3 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition text-xs md:text-sm"><i class="fa-solid fa-times text-lg"></i></button>
+                            <div class="flex bg-slate-100 p-1 rounded-lg overflow-x-auto max-w-full no-scrollbar">${tabs.map(t => `<button onclick="window.app.switchView('${t.id}')" class="px-3 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap flex items-center gap-2 ${this.activeView === t.id ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}"><i class="fa-solid ${t.icon}"></i> ${t.label}</button>`).join('')}</div>
+                            <div class="hidden md:flex gap-2 ml-4">
+                                <button onclick="window.app.openAI('${s.id}')" class="px-3 py-2 bg-ai-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-ai-500/30 hover:bg-ai-700 transition"><i class="fa-solid fa-sparkles"></i> AI</button>
+                                <button onclick="window.app.downloadPDF('${s.id}')" class="px-3 py-2 border border-slate-200 rounded-lg text-slate-600 text-sm hover:bg-slate-50"><i class="fa-solid fa-download"></i></button>
+                                <button onclick="window.app.renderHome()" class="px-3 py-2 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
                             </div>
                         </div>
-                        <div class="flex-1 overflow-hidden flex flex-col md:flex-row pb-16 md:pb-0">
-                            <div class="w-full md:w-60 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-2 md:p-3 no-print overflow-x-auto md:overflow-y-auto flex-shrink-0 flex md:block gap-2 scrollbar-hide">
-                                ${this.navButton('overview', 'fa-chart-pie', 'Status')}
-                                ${this.navButton('checklist', 'fa-list-check', 'Checklist')}
-                                ${this.navButton('finance', 'fa-wallet', 'Financials')}
-                                ${this.navButton('growth', 'fa-chart-line', 'Growth')}
-                                ${this.navButton('marketing', 'fa-bullhorn', 'Marketing')}
-                                ${this.navButton('content', 'fa-pen-nib', 'Content')}
-                                ${this.navButton('investment', 'fa-handshake', 'Invest')}
-                            </div>
-                            <div class="flex-1 overflow-y-auto bg-white p-4 md:p-10" id="tab-container">
-                                ${this.renderTabContent(s)}
-                            </div>
-                        </div>
+                        <div class="flex-1 overflow-y-auto p-4 md:p-8 max-w-6xl mx-auto w-full">${this.getTabContent(s)}</div>
                     </div>`;
+                
+                // Initialize charts if needed
+                if(this.activeView === 'finance' && this.activeFinanceTab === 'overview') {
+                    setTimeout(() => this.renderCharts(s), 100);
+                }
             }
 
-            navButton(id, icon, label) {
-                const isActive = this.activeTab === id;
-                return `<button onclick="window.app.switchTab('${id}')" class="flex-shrink-0 whitespace-nowrap md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-3 py-2 md:py-2.5 text-xs md:text-sm font-medium rounded-lg transition ${isActive ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:bg-slate-200'}"><i class="fa-solid ${icon} w-4 md:w-5 text-center ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i> ${label}</button>`;
-            }
-            switchTab(tabId) { this.activeTab = tabId; this.renderStartup(this.activeStartupId); }
-
-            renderTabContent(s) {
-                if (this.activeTab === 'overview') return this.renderOverviewTab(s);
-                if (this.activeTab === 'growth') return this.renderGrowthTab(s);
-                if (this.activeTab === 'finance') return this.renderFinanceTab(s);
-                if (this.activeTab === 'checklist') return this.renderChecklistTab(s);
-                if (this.activeTab === 'marketing') return this.renderMarketingTab(s);
-                if (this.activeTab === 'content') return this.renderContentTab(s);
-                if (this.activeTab === 'investment') return this.renderInvestmentTab(s);
+            getTabContent(s) {
+                switch(this.activeView) {
+                    case 'journey': return this.renderJourney(s);
+                    case 'roadmap': return this.renderRoadmap(s);
+                    case 'canvas': return this.renderCanvas(s);
+                    case 'finance': return this.renderFinanceEngine(s);
+                    case 'founder': return this.renderFounderCore(s);
+                    default: return this.renderJourney(s);
+                }
             }
 
-            renderOverviewTab(s) {
-                const cashLeft = s.finance.budget - this.calculateExpenses(s);
+            // --- JOURNEY VIEW ---
+            renderJourney(s) {
+                const levels = [
+                    { lvl: 1, title: "Level 1: The Spark (Concept)", desc: "Define your core vision." },
+                    { lvl: 2, title: "Level 2: The Proof (Discovery)", desc: "Talk to real humans." },
+                    { lvl: 3, title: "Level 3: The Build (MVP)", desc: "Create something ugly that works." },
+                    { lvl: 4, title: "Level 4: First Taka (Revenue)", desc: "Get someone to pay you." },
+                    { lvl: 5, title: "Level 5: Scale Machine", desc: "Pour fuel on the fire." }
+                ];
+                const currentLvl = s.level || 1;
+                const hasVision = s.founder.vision.length > 5;
+                const hasProblem = s.strategy.problem.length > 5;
+                const hasInterviews = s.strategy.interviews >= 1;
+                const hasMVP = s.checklist[3].tasks[1].done;
+                const revenue = this.calcIncome(s);
+                const hasRevenue = revenue > 0;
+                
+                const renderCardContent = (lvl) => {
+                    if (lvl === 1) return `<div class="space-y-3"><label class="text-xs font-bold text-slate-500 uppercase">Vision Statement</label><textarea onchange="window.app.updateDeep('${s.id}', 'founder.vision', this.value); window.app.checkLevelUp('${s.id}')" class="w-full border border-slate-200 rounded p-2 text-sm h-16" placeholder="I want to build X for Y because Z...">${s.founder.vision}</textarea>${hasVision ? `<div class="text-brand-600 text-xs font-bold"><i class="fa-solid fa-check"></i> Completed</div>` : `<div class="text-slate-400 text-xs">Fill this to unlock Level 2</div>`}</div>`;
+                    if (lvl === 2) return `<div class="space-y-3"><label class="text-xs font-bold text-slate-500 uppercase">Core Problem</label><input value="${s.strategy.problem}" onchange="window.app.updateDeep('${s.id}', 'strategy.problem', this.value)" class="w-full border border-slate-200 rounded p-2 text-sm" placeholder="What pain are you solving?"><div class="flex items-center gap-2"><label class="text-xs font-bold text-slate-500 uppercase">Interviews</label><input type="number" value="${s.strategy.interviews}" onchange="window.app.updateDeep('${s.id}', 'strategy.interviews', this.value); window.app.checkLevelUp('${s.id}')" class="w-20 border border-slate-200 rounded p-2 text-center font-bold"></div>${(hasProblem && hasInterviews) ? `<div class="text-brand-600 text-xs font-bold"><i class="fa-solid fa-check"></i> Ready for Level 3</div>` : `<div class="text-slate-400 text-xs">Need: Problem + 1 Interview</div>`}</div>`;
+                    if (lvl === 3) return `<div class="space-y-3"><div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"><input type="checkbox" onchange="window.app.toggleTask('${s.id}', 3, 1, this); window.app.checkLevelUp('${s.id}')" ${hasMVP ? 'checked' : ''} class="w-5 h-5 accent-brand-600"><span class="text-sm font-bold text-slate-700">MVP Built & Deployed?</span></div>${hasMVP ? `<div class="text-brand-600 text-xs font-bold"><i class="fa-solid fa-check"></i> Ready to Sell</div>` : ``}</div>`;
+                    if (lvl === 4) return `<div class="space-y-3"><div class="bg-green-50 p-4 rounded-lg border border-green-100 flex justify-between items-center"><span class="text-xs font-bold text-green-700 uppercase">Total Revenue</span><span class="text-xl font-bold text-green-700">৳${revenue}</span></div><div class="text-xs text-slate-500">Go to <b>Finance Tab</b> to add income. Need > ৳0 to unlock.</div>${hasRevenue ? `<div class="text-brand-600 text-xs font-bold"><i class="fa-solid fa-check"></i> First Blood!</div>` : ``}</div>`;
+                    if (lvl === 5) return `<div class="p-4 bg-gold-50 border border-gold-200 rounded-lg text-center"><div class="text-2xl mb-2">🚀</div><div class="font-bold text-gold-600">Scaling Mode Active</div><div class="text-xs text-gold-500">Focus on Marketing & Hiring in Strategy Tab.</div></div>`;
+                };
+
+                return `<div class="fade-in max-w-2xl mx-auto pb-20"><div class="text-center mb-10"><h2 class="text-3xl font-bold text-slate-900 font-display">Founder Journey</h2><p class="text-slate-500">Level up your startup step-by-step.</p></div><div class="space-y-6 relative"><div class="absolute left-6 top-0 bottom-0 w-1 bg-slate-200 -z-10"></div>${levels.map(l => { const isLocked = l.lvl > currentLvl; const isCompleted = l.lvl < currentLvl; const isActive = l.lvl === currentLvl; let statusClass = ""; if (isLocked) statusClass = "locked"; else if (isActive) statusClass = "active"; else if (isCompleted) statusClass = "completed border-l-4 border-l-gold-500 opacity-80"; return `<div class="level-card bg-white rounded-xl p-6 shadow-sm border border-slate-200 ml-0 md:ml-0 ${statusClass}"><div class="flex items-center gap-4 mb-4"><div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold border-4 border-white shadow-sm z-10 ${isLocked ? 'bg-slate-200 text-slate-400' : isActive ? 'bg-brand-600 text-white' : 'bg-gold-500 text-white'}">${isLocked ? '<i class="fa-solid fa-lock"></i>' : l.lvl}</div><div><h3 class="font-bold text-lg text-slate-800">${l.title}</h3><p class="text-xs text-slate-500">${l.desc}</p></div>${isActive ? '<span class="ml-auto text-xs bg-brand-100 text-brand-700 px-2 py-1 rounded font-bold animate-pulse">Current</span>' : ''}</div><div class="pl-16">${renderCardContent(l.lvl)}${isActive ? `<button onclick="window.app.tryLevelUp('${s.id}')" class="mt-4 w-full py-2 bg-slate-900 text-white rounded-lg text-sm font-bold hover:bg-slate-800 transition">Complete Level</button>` : ''}</div></div>`; }).join('')}</div></div>`;
+            }
+
+            tryLevelUp(id) {
+                const s = this.getStartup(id);
+                const lvl = s.level || 1;
+                let canUp = false;
+                if (lvl === 1 && s.founder.vision.length > 5) canUp = true;
+                if (lvl === 2 && s.strategy.problem.length > 5 && s.strategy.interviews >= 1) canUp = true;
+                if (lvl === 3 && s.checklist[3].tasks[1].done) canUp = true; 
+                if (lvl === 4 && this.calcIncome(s) > 0) canUp = true;
+                if (canUp) { s.level = lvl + 1; this.save(); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); this.renderStartup(id); } else { alert("Complete the task requirements first!"); }
+            }
+            checkLevelUp(id){} // Auto-check placeholder
+
+            // --- CANVAS VIEW ---
+            renderCanvas(s) {
+                const c = s.canvas || CANVAS_DEFAULTS;
+                const block = (key, title, icon, h='h-48') => `<div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm canvas-card hover:border-brand-300 transition group ${h}"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-slate-700 text-sm uppercase flex items-center gap-2"><i class="fa-solid ${icon} text-slate-400 group-hover:text-brand-500"></i> ${title}</h3></div><textarea oninput="window.app.updateCanvas('${s.id}', '${key}', this.value)" class="canvas-textarea text-slate-600" placeholder="Type here...">${c[key]}</textarea></div>`;
+                return `<div class="fade-in"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold text-slate-900 font-display">Lean Canvas</h2><button onclick="window.app.askAI('Generate a complete Lean Canvas for my startup: ${s.name} in ${s.industry}. Return a list with Problem, Solution, UVP, Unfair Advantage, Segments, Channels, Revenue, Cost.')" class="bg-ai-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-ai-500/30 hover:bg-ai-700 transition"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>AI Auto-Fill</button></div><div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4"><div class="md:col-span-1 space-y-4">${block('problem', 'Problem', 'fa-triangle-exclamation')} ${block('solution', 'Existing Alternatives', 'fa-link', 'h-32')}</div><div class="md:col-span-1 space-y-4">${block('solution', 'Solution', 'fa-lightbulb')} ${block('metrics', 'Key Metrics', 'fa-chart-simple', 'h-32')}</div><div class="md:col-span-1 space-y-4">${block('uvp', 'Unique Value Prop', 'fa-gift', 'h-full')}</div><div class="md:col-span-1 space-y-4">${block('advantage', 'Unfair Advantage', 'fa-shield-halved')} ${block('channels', 'Channels', 'fa-route', 'h-32')}</div><div class="md:col-span-1 space-y-4">${block('segments', 'Customer Segments', 'fa-users')} ${block('segments', 'Early Adopters', 'fa-user-clock', 'h-32')}</div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${block('cost', 'Cost Structure', 'fa-money-bill-wave', 'h-32')} ${block('revenue', 'Revenue Streams', 'fa-hand-holding-dollar', 'h-32')}</div></div>`;
+            }
+
+            // --- ROADMAP VIEW ---
+            renderRoadmap(s) {
+                const nextTask = this.getNextTask(s);
+                return `<div class="flex flex-col md:flex-row gap-6 fade-in"><div class="w-full md:w-1/3 space-y-6"><div class="bg-gradient-to-br from-brand-600 to-brand-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-20 text-6xl"><i class="fa-solid fa-crosshairs"></i></div><div class="relative z-10"><div class="text-xs font-bold text-brand-200 uppercase tracking-widest mb-2">Next Action</div><h3 class="text-xl font-bold font-display leading-snug mb-4">${nextTask ? nextTask.text : "Optimized!"}</h3>${nextTask ? `<button onclick="window.app.scrollToTask('${nextTask.id}')" class="bg-white text-brand-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-50">Execute <i class="fa-solid fa-arrow-right ml-1"></i></button>` : ''}</div></div></div><div class="w-full md:w-2/3 bg-white rounded-2xl border border-slate-200 p-6"><h2 class="text-xl font-bold text-slate-900 font-display mb-6">Execution Stages</h2><div class="space-y-6">${s.checklist.map((stage, sIdx) => `<div class="relative pl-6 border-l-2 border-slate-200 pb-2"><div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-brand-500"></div><h3 class="font-bold text-slate-800 mb-1">${stage.stage}</h3><p class="text-xs text-slate-500 mb-3">${stage.desc}</p><div class="space-y-2">${stage.tasks.map((t, tIdx) => `<label id="task-${t.id}" class="flex items-start gap-3 cursor-pointer group custom-checkbox p-2 rounded hover:bg-slate-50"><input type="checkbox" class="hidden" onchange="window.app.toggleTask('${s.id}', ${sIdx}, ${tIdx}, this)" ${t.done ? 'checked' : ''}><div class="w-5 h-5 rounded border-2 border-slate-300 flex items-center justify-center bg-white"><svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div><span class="text-sm ${t.done ? 'line-through text-slate-400' : 'text-slate-700'}">${t.text}</span></label>`).join('')}</div></div>`).join('')}</div></div></div>`;
+            }
+
+            // --- FINANCE ENGINE ---
+            renderFinanceEngine(s) {
+                const subTabs = [{id:'overview',label:'Overview'},{id:'investment',label:'Investment'},{id:'income',label:'Income'},{id:'expense',label:'Expense'}];
+                const ti = s.finance.investments.reduce((a,b)=>a+Number(b.amount),0), tinc = s.finance.income.reduce((a,b)=>a+Number(b.amount),0), texp = s.finance.expenses.reduce((a,b)=>a+Number(b.amount),0);
+                
+                let content = '';
+                if(this.activeFinanceTab==='overview') {
+                    // Visual War Room
+                    content = `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-blue-50 p-6 rounded-xl border border-blue-100"><div class="text-xs font-bold text-blue-500 uppercase">Cash Balance</div><div class="text-3xl font-bold text-blue-900">৳${ti+tinc-texp}</div></div>
+                            <div class="bg-green-50 p-6 rounded-xl border border-green-100"><div class="text-xs font-bold text-green-500 uppercase">Revenue</div><div class="text-3xl font-bold text-green-900">৳${tinc}</div></div>
+                            <div class="bg-red-50 p-6 rounded-xl border border-red-100"><div class="text-xs font-bold text-red-500 uppercase">Expenses</div><div class="text-3xl font-bold text-red-900">৳${texp}</div></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h3 class="font-bold text-slate-800 mb-4">Cash Flow Visual</h3>
+                                <canvas id="cashflowChart"></canvas>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h3 class="font-bold text-slate-800 mb-4">Expense Breakdown</h3>
+                                <canvas id="expenseChart"></canvas>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    content = this.renderFinanceTable(s, this.activeFinanceTab === 'investment' ? 'investments' : this.activeFinanceTab === 'income' ? 'income' : 'expenses');
+                }
+                return `<div class="fade-in"><div class="flex gap-2 mb-6 border-b border-slate-200 pb-1">${subTabs.map(t => `<button onclick="window.app.switchFinanceTab('${t.id}')" class="px-4 py-2 text-sm font-bold border-b-2 transition ${this.activeFinanceTab===t.id?'border-brand-500 text-brand-600':'border-transparent text-slate-500 hover:text-slate-700'}">${t.label}</button>`).join('')}</div>${content}</div>`;
+            }
+
+            renderCharts(s) {
+                const ctx1 = document.getElementById('cashflowChart');
+                const ctx2 = document.getElementById('expenseChart');
+                if(!ctx1 || !ctx2) return;
+
+                if(this.chartInstance) { this.chartInstance.destroy(); } // Simple destroy if needed, or handle multiple
+
+                const ti = s.finance.investments.reduce((a,b)=>a+Number(b.amount),0);
+                const tinc = s.finance.income.reduce((a,b)=>a+Number(b.amount),0);
+                const texp = s.finance.expenses.reduce((a,b)=>a+Number(b.amount),0);
+
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Invested', 'Revenue', 'Expenses'],
+                        datasets: [{
+                            label: 'Amount (BDT)',
+                            data: [ti, tinc, texp],
+                            backgroundColor: ['#3b82f6', '#22c55e', '#ef4444'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+
+                // Expense breakdown logic
+                const expMap = {};
+                s.finance.expenses.forEach(e => { expMap[e.item] = (expMap[e.item] || 0) + Number(e.amount); });
+                
+                new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(expMap),
+                        datasets: [{
+                            data: Object.values(expMap),
+                            backgroundColor: ['#f87171', '#fb923c', '#fbbf24', '#a3e635', '#22d3ee', '#818cf8']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+
+            renderFinanceTable(s, type) {
+                const list = s.finance[type] || [];
+                return `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"><div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center"><h3 class="font-bold text-slate-800 capitalize">${type} Ledger</h3><button onclick="window.app.addFinanceItem('${s.id}', '${type}')" class="text-xs bg-slate-900 text-white px-3 py-1.5 rounded hover:bg-slate-700 font-bold">+ Add Item</button></div><table class="w-full text-sm text-left"><thead class="text-xs text-slate-500 uppercase bg-white border-b"><tr><th class="px-4 py-3">Item/Source</th><th class="px-4 py-3">Amount (BDT)</th><th class="px-4 py-3">Date</th><th class="px-4 py-3 text-right">Action</th></tr></thead><tbody class="divide-y divide-slate-100">${list.map((item, idx) => `<tr class="hover:bg-slate-50"><td class="px-4 py-2"><input value="${item.source||item.item}" onchange="window.app.updateFinanceItem('${s.id}', '${type}', ${idx}, '${type==='expenses'?'item':'source'}', this.value)" class="bg-transparent outline-none w-full"></td><td class="px-4 py-2"><input type="number" value="${item.amount}" onchange="window.app.updateFinanceItem('${s.id}', '${type}', ${idx}, 'amount', this.value)" class="bg-transparent outline-none w-24"></td><td class="px-4 py-2"><input type="date" value="${item.date}" onchange="window.app.updateFinanceItem('${s.id}', '${type}', ${idx}, 'date', this.value)" class="bg-transparent outline-none text-xs text-slate-500"></td><td class="px-4 py-2 text-right"><button onclick="window.app.deleteFinanceItem('${s.id}', '${type}', ${idx})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
+            }
+
+            // --- FOUNDER VIEW ---
+            renderFounderCore(s) {
+                const f = s.founder; 
+                // Simulator logic in real-time display
+                // Note: The inputs below update state, but visual simulator creates a "What if" scenario locally
                 return `
-                    <div class="fade-in max-w-4xl mx-auto">
-                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4 md:mb-6">Status Dashboard</h2>
-                        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6 md:mb-8">
-                            <div class="bg-slate-50 px-4 md:px-6 py-3 border-b border-slate-200 font-semibold text-slate-700 text-sm md:text-base">Project Essentials</div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                                <div class="p-4 md:p-6 space-y-4">
-                                    ${this.inputRow(s.id, 'Founder', s.founder, 'founder')}
-                                    ${this.inputRow(s.id, 'Business Model', s.model, 'model')}
-                                    ${this.inputRow(s.id, 'Target Market', s.targetMarket, 'targetMarket')}
-                                </div>
-                                <div class="p-4 md:p-6 space-y-4">
-                                    ${this.selectRow(s.id, 'Current Stage', s.stage, 'stage', ['Idea', 'Validation', 'MVP Build', 'Launch', 'Scaling'])}
-                                    ${this.inputRow(s.id, 'Launch Date', s.launchDate, 'launchDate', 'date')}
-                                    <div class="pt-2">
-                                        <div class="flex justify-between items-center mb-1"><label class="text-xs font-medium text-slate-500">Execution Progress</label><span class="text-brand-600 font-bold text-sm">${this.calculateProgress(s)}%</span></div>
-                                        <div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width: ${this.calculateProgress(s)}%"></div></div>
+                    <div class="fade-in space-y-6">
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                            <h2 class="text-lg font-bold text-slate-900 mb-4 font-display">Founder Clarity</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Why this startup?</label><textarea onchange="window.app.updateDeep('${s.id}', 'founder.vision', this.value); window.app.checkLevelUp('${s.id}')" class="w-full border border-slate-200 rounded p-2 text-sm h-20">${f.vision}</textarea></div>
+                                <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Risk Tolerance</label><input onchange="window.app.updateDeep('${s.id}', 'founder.risk', this.value)" value="${f.risk}" class="w-full border border-slate-200 rounded p-2 text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-lg">
+                            <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-xl"><i class="fa-solid fa-sliders mr-2"></i>Runway Simulator</h3><span class="text-xs bg-slate-800 px-2 py-1 rounded">Interactive</span></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-6">
+                                    <div>
+                                        <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Monthly Expenses</span> <span id="sim-exp-val">৳${f.runway.monthlyCost}</span></div>
+                                        <input type="range" min="0" max="500000" step="1000" value="${f.runway.monthlyCost}" oninput="window.app.updateSim('${s.id}', 'cost', this.value)" class="w-full">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Total Savings</span> <span id="sim-sav-val">৳${f.runway.savings}</span></div>
+                                        <input type="range" min="0" max="5000000" step="5000" value="${f.runway.savings}" oninput="window.app.updateSim('${s.id}', 'savings', this.value)" class="w-full">
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
-                            <div class="bg-blue-50 p-3 md:p-4 rounded-xl border border-blue-100"><div class="text-[10px] md:text-xs text-blue-500 font-bold uppercase">Budget</div><div class="text-base md:text-xl font-bold text-blue-900 truncate">$${s.finance.budget}</div></div>
-                            <div class="bg-red-50 p-3 md:p-4 rounded-xl border border-red-100"><div class="text-[10px] md:text-xs text-red-500 font-bold uppercase">Burn/Mo</div><div class="text-base md:text-xl font-bold text-red-900 truncate">$${s.finance.monthlyCost}</div></div>
-                            <div class="bg-emerald-50 p-3 md:p-4 rounded-xl border border-emerald-100"><div class="text-[10px] md:text-xs text-emerald-500 font-bold uppercase">Revenue</div><div class="text-base md:text-xl font-bold text-emerald-900 truncate">$${s.finance.currentRevenue}</div></div>
-                            <div class="bg-slate-50 p-3 md:p-4 rounded-xl border border-slate-200"><div class="text-[10px] md:text-xs text-slate-500 font-bold uppercase">Cash Left</div><div class="text-base md:text-xl font-bold text-slate-800 truncate">$${cashLeft}</div></div>
-                        </div>
-                    </div>`;
-            }
-
-            renderFinanceTab(s) {
-                 const expenses = this.calculateExpenses(s);
-                 return `
-                    <div class="fade-in max-w-4xl mx-auto">
-                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Financial Overview</h2>
-                        <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 mb-8 shadow-xl relative overflow-hidden">
-                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                                <div><label class="text-slate-400 text-xs font-bold uppercase">Initial Investment</label><div class="flex items-center mt-1"><span class="text-2xl mr-1">$</span><input type="number" value="${s.finance.budget}" onchange="window.app.updateField('${s.id}', 'finance.budget', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-white"></div></div>
-                                <div><label class="text-slate-400 text-xs font-bold uppercase">Revenue/Mo</label><div class="flex items-center mt-1"><span class="text-2xl mr-1 text-emerald-400">$</span><input type="number" value="${s.finance.currentRevenue}" onchange="window.app.updateField('${s.id}', 'finance.currentRevenue', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-emerald-400 text-emerald-400"></div></div>
-                                <div><label class="text-slate-400 text-xs font-bold uppercase">Fixed Cost</label><div class="flex items-center mt-1"><span class="text-xl mr-1 text-red-300">$</span><input type="number" value="${s.finance.monthlyCost}" onchange="window.app.updateField('${s.id}', 'finance.monthlyCost', this.value)" class="bg-transparent text-2xl font-bold w-full outline-none border-b border-slate-700 focus:border-red-300 text-red-300"></div></div>
-                                <div><label class="text-slate-400 text-xs font-bold uppercase">Remaining</label><div class="text-3xl font-bold mt-1 text-white">$${s.finance.budget - expenses}</div></div>
-                             </div>
-                        </div>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
-                            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl"><h3 class="font-bold text-slate-800">Expenses</h3><button onclick="window.app.addItem('${s.id}', 'finance')" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700 transition">Add Item</button></div>
-                            <div class="max-h-96 overflow-y-auto"><table class="w-full text-left text-sm"><thead class="bg-white text-slate-500 sticky top-0"><tr><th class="px-4 md:px-6 py-3 font-medium">Item</th><th class="px-4 md:px-6 py-3 font-medium">Cost</th><th class="px-2 py-3 w-8"></th></tr></thead><tbody class="divide-y divide-slate-100">
-                                ${s.finance.expenses.map((ex, idx) => `
-                                    <tr class="group hover:bg-slate-50">
-                                        <td class="px-4 md:px-6 py-2"><input type="text" value="${ex.item}" onchange="window.app.modifyArrayItem('${s.id}', 'finance', ${idx}, 'item', this.value)" class="w-full bg-transparent outline-none py-1"></td>
-                                        <td class="px-4 md:px-6 py-2"><input type="number" value="${ex.cost}" onchange="window.app.modifyArrayItem('${s.id}', 'finance', ${idx}, 'cost', this.value)" class="w-full bg-transparent outline-none py-1 text-slate-700 font-mono"></td>
-                                        <td class="px-2 py-2 text-center"><button onclick="window.app.removeItem('${s.id}', 'finance', ${idx})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button></td>
-                                    </tr>`).join('')}
-                            </tbody></table></div>
-                        </div>
-                    </div>`;
-            }
-
-            renderGrowthTab(s) {
-                 return `
-                    <div class="fade-in max-w-4xl mx-auto">
-                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Growth Metrics</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><label class="text-xs font-bold text-slate-500 uppercase">Total Leads</label><input type="number" value="${s.growth.leads}" onchange="window.app.updateField('${s.id}', 'growth.leads', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500"></div>
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><label class="text-xs font-bold text-slate-500 uppercase">Customers</label><input type="number" value="${s.growth.customers}" onchange="window.app.updateField('${s.id}', 'growth.customers', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500"></div>
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><label class="text-xs font-bold text-slate-500 uppercase">Sales ($)</label><input type="number" value="${s.growth.sales}" onchange="window.app.updateField('${s.id}', 'growth.sales', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500"></div>
-                        </div>
-                    </div>`;
-            }
-
-            renderChecklistTab(s) {
-                 return `
-                    <div class="fade-in max-w-4xl mx-auto">
-                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Execution Checklist</h2>
-                        <div class="space-y-6">
-                            ${s.checklist.map((stage, stageIdx) => `
-                                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-800 text-sm md:text-base">${stage.stage}</h3><span class="text-[10px] md:text-xs font-mono text-slate-400 bg-white px-2 py-1 border rounded shadow-sm">PHASE 0${stageIdx+1}</span></div>
-                                    <div class="p-4 md:p-6 space-y-3">
-                                        ${stage.tasks.map((task, taskIdx) => `
-                                            <div class="flex items-start gap-3 group p-2 hover:bg-slate-50 rounded-lg transition">
-                                                <input type="checkbox" onchange="window.app.toggleTask('${s.id}', ${stageIdx}, ${taskIdx})" class="mt-1 w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer" ${task.done ? 'checked' : ''}>
-                                                <div class="${task.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} flex-1 select-none text-sm md:text-base">${task.text}</div>
-                                            </div>`).join('')}
-                                    </div>
-                                </div>`).join('')}
-                        </div>
-                    </div>`;
-            }
-            
-            renderMarketingTab(s) {
-                 return `
-                    <div class="fade-in max-w-4xl mx-auto">
-                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Marketing Strategy</h2>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6"><h3 class="font-bold text-slate-800 mb-2">Core Strategy</h3><textarea onchange="window.app.updateField('${s.id}', 'marketing.strategy', this.value)" class="w-full h-40 border border-slate-200 rounded-lg p-3 text-slate-700 outline-none focus:border-brand-500 bg-slate-50" placeholder="Go-to-Market strategy...">${s.marketing.strategy}</textarea></div>
-                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-800">Channels</h3><button onclick="window.app.addItem('${s.id}', 'marketing')" class="text-sm text-brand-600 font-medium">+ Add Channel</button></div>
-                            <div class="space-y-3">
-                                ${(s.marketing.channels || []).map((ch, idx) => `
-                                    <div class="flex flex-col md:flex-row gap-2 md:items-center bg-slate-50 md:bg-white p-2 md:p-0 rounded">
-                                        <input type="text" value="${ch.name}" onchange="window.app.modifyArrayItem('${s.id}', 'marketing', ${idx}, 'name', this.value)" class="flex-1 border border-slate-200 rounded p-2 text-sm outline-none" placeholder="Channel">
-                                        <select onchange="window.app.modifyArrayItem('${s.id}', 'marketing', ${idx}, 'status', this.value)" class="border border-slate-200 rounded p-2 text-sm bg-white outline-none w-full md:w-auto"><option ${ch.status === 'Planned' ? 'selected' : ''}>Planned</option><option ${ch.status === 'Live' ? 'selected' : ''}>Live</option><option ${ch.status === 'Paused' ? 'selected' : ''}>Paused</option></select>
-                                        <button onclick="window.app.removeItem('${s.id}', 'marketing', ${idx})" class="text-slate-400 hover:text-red-500 px-2 self-end md:self-auto"><i class="fa-solid fa-times"></i></button>
-                                    </div>`).join('')}
+                                <div class="flex flex-col justify-center items-center bg-slate-800 rounded-xl p-4 border border-slate-700">
+                                    <div class="text-xs text-slate-400 uppercase font-bold mb-2">Projected Survival</div>
+                                    <div class="text-5xl font-bold font-display text-brand-400" id="sim-result">∞</div>
+                                    <div class="text-sm text-slate-500 mt-1">Months</div>
+                                </div>
                             </div>
                         </div>
                     </div>`;
             }
 
-            renderContentTab(s) {
-                 return `<div class="fade-in max-w-4xl mx-auto h-full flex flex-col"><h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4">Content Strategy</h2><div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex-1 flex flex-col min-h-[400px]"><textarea onchange="window.app.updateField('${s.id}', 'notes', this.value)" class="w-full h-full p-4 md:p-6 text-slate-700 outline-none resize-none font-mono text-sm leading-relaxed" placeholder="# Content Calendar...">${s.notes}</textarea></div></div>`;
-            }
-            
-            renderInvestmentTab(s) {
-                return `
-                    <div class="fade-in max-w-4xl mx-auto">
-                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Investment</h2>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-slate-800">Funding Rounds</h3><button onclick="window.app.addItem('${s.id}', 'investment')" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700">+ Add Round</button></div>
-                            <div class="grid gap-4">
-                                ${(s.investment.rounds || []).map((r, idx) => `
-                                    <div class="border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row gap-4 bg-slate-50">
-                                        <input type="text" value="${r.name}" onchange="window.app.modifyArrayItem('${s.id}', 'investment', ${idx}, 'name', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Seed Round">
-                                        <input type="number" value="${r.amount}" onchange="window.app.modifyArrayItem('${s.id}', 'investment', ${idx}, 'amount', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Amount">
-                                        <input type="text" value="${r.investor}" onchange="window.app.modifyArrayItem('${s.id}', 'investment', ${idx}, 'investor', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Investor">
-                                        <button onclick="window.app.removeItem('${s.id}', 'investment', ${idx})" class="text-slate-400 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
-                                    </div>`).join('')}
-                            </div>
-                        </div>
-                    </div>`;
+            // Simulator Update Logic
+            updateSim(id, type, val) {
+                const s = this.getStartup(id);
+                // Update Model
+                if (type === 'cost') s.founder.runway.monthlyCost = Number(val);
+                if (type === 'savings') s.founder.runway.savings = Number(val);
+                this.save(); // Save state
+
+                // Update UI instantly
+                document.getElementById(type === 'cost' ? 'sim-exp-val' : 'sim-sav-val').innerText = '৳' + Number(val).toLocaleString();
+                
+                const burn = s.founder.runway.monthlyCost - s.founder.runway.income;
+                const life = burn > 0 ? (s.founder.runway.savings / burn).toFixed(1) : "∞";
+                document.getElementById('sim-result').innerText = life;
             }
 
-            inputRow(id, label, value, field, type='text') {
-                return `<div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</label><input type="${type}" value="${value}" onchange="window.app.updateField('${id}', '${field}', this.value)" class="w-full border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"></div>`;
+            // ... (Rest of logic: updateDeep, updateCanvas, Finance CRUD, AI, PDF - Keep same as before) ...
+            updateDeep(id, p, v) { const s = this.getStartup(id); const k = p.split('.'); let t = s; for(let i=0; i<k.length-1; i++) t = t[k[i]]; t[k[k.length-1]] = v; this.save(); }
+            updateCanvas(id, k, v) { const s = this.getStartup(id); if(!s.canvas) s.canvas = {...CANVAS_DEFAULTS}; s.canvas[k] = v; this.save(); }
+            addFinanceItem(id, type) { this.getStartup(id).finance[type].push({ id: Date.now(), source: 'New Item', amount: 0, date: new Date().toISOString().split('T')[0] }); this.save(); this.renderStartup(id); }
+            updateFinanceItem(id, type, idx, f, v) { this.getStartup(id).finance[type][idx][f] = f==='amount'?Number(v):v; this.save(); if(f==='amount') this.renderStartup(id); }
+            deleteFinanceItem(id, type, idx) { this.getStartup(id).finance[type].splice(idx, 1); this.save(); this.renderStartup(id); }
+            toggleTask(id, sIdx, tIdx, cb) { const s = this.getStartup(id); s.checklist[sIdx].tasks[tIdx].done = cb.checked; this.save(); if(cb.checked) confetti({particleCount:30, spread:50, origin:{y:0.7}}); if(this.activeView === 'roadmap') this.renderRoadmap(s); }
+            scrollToTask(tid) { const el = document.getElementById(`task-${tid}`); if(el) el.scrollIntoView({behavior:'smooth', block:'center'}); }
+            getNextTask(s) { for(let st of s.checklist) for(let t of st.tasks) if(!t.done) return t; return null; }
+            calcProgress(s) { let t=0, d=0; s.checklist.forEach(st => st.tasks.forEach(tsk => { t++; if(tsk.done) d++; })); return t===0 ? 0 : Math.round((d/t)*100); }
+            calcIncome(s) { return s.finance.income.reduce((a, b) => a + Number(b.amount), 0); }
+
+            openAI(id) { 
+                document.getElementById('aiModal').classList.remove('hidden'); const s = this.getStartup(id);
+                document.getElementById('ai-quick-actions').innerHTML = `
+                    <button onclick="window.app.askAI('Generate a complete Lean Canvas for ${s.name} (${s.industry}).')" class="p-3 bg-slate-50 border rounded-lg text-xs font-bold hover:bg-ai-50">📋 Build Lean Canvas</button>
+                    <button onclick="window.app.askAI('Roast my startup idea: ${s.name}')" class="p-3 bg-slate-50 border rounded-lg text-xs font-bold hover:bg-ai-50">🔥 Roast Idea</button>
+                `;
             }
-            selectRow(id, label, value, field, options) {
-                return `<div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</label><select onchange="window.app.updateField('${id}', '${field}', this.value)" class="w-full border border-slate-200 rounded p-2 text-sm bg-white outline-none">${options.map(opt => `<option ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}</select></div>`;
+            askAI(q) { document.getElementById('ai-input').value = q; this.sendAIMessage(); }
+            async sendAIMessage() {
+                const i = document.getElementById('ai-input'); const m = i.value.trim(); if(!m) return;
+                const h = document.getElementById('chat-history'); h.innerHTML += `<div class="flex w-full mb-4"><div class="chat-bubble chat-user">${m}</div></div>`; i.value = ''; h.scrollTop = h.scrollHeight;
+                try {
+                    const k = apiKey || this.userApiKey; if(!k) throw new Error("API Key Missing");
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${k}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contents:[{parts:[{text:m}]}]}) });
+                    const d = await res.json(); const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || "Error.";
+                    h.innerHTML += `<div class="flex w-full mb-4 fade-in"><div class="chat-bubble chat-ai">${marked.parse(txt)}</div></div>`; h.scrollTop = h.scrollHeight;
+                } catch(e) { h.innerHTML += `<div class="flex w-full mb-4"><div class="chat-bubble bg-red-100 text-red-800">Error: ${e.message}</div></div>`; }
             }
 
             downloadPDF(id) {
-                const s = this.getStartup(id);
-                const container = document.getElementById('pdf-export-container');
-                const cashLeft = s.finance.budget - this.calculateExpenses(s);
-                
-                const tableStyle = `width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;`;
-                const thStyle = `background: #f1f5f9; padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #334155;`;
-                const tdStyle = `padding: 8px; border: 1px solid #e2e8f0; color: #1e293b;`;
-                const headerStyle = `border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between;`;
-                const sectionTitle = `font-size: 16px; font-weight: bold; color: #0f172a; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;`;
-
-                const html = `
-                    <div style="font-family: 'Inter', sans-serif; color: #1e293b; padding: 20px;">
-                        <div style="${headerStyle}"><div><h1 style="font-size: 28px; font-weight: 800; margin: 0; text-transform: uppercase;">${s.name}</h1><p style="margin: 5px 0 0; font-size: 12px; color: #64748b;">${s.founder} | ${s.industry} | ${s.stage}</p></div><div style="text-align: right;"><div style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Generated On</div><div style="font-size: 12px; font-weight: bold;">${new Date().toLocaleDateString()}</div></div></div>
-                        
-                        <div style="${sectionTitle}">1. Executive Summary</div>
-                        <table style="${tableStyle}"><tr><th style="${thStyle}">Business Model</th><td style="${tdStyle}">${s.model}</td><th style="${thStyle}">Target Market</th><td style="${tdStyle}">${s.targetMarket}</td></tr><tr><th style="${thStyle}">Launch Date</th><td style="${tdStyle}">${s.launchDate}</td><th style="${thStyle}">Execution Score</th><td style="${tdStyle}"><strong>${this.calculateProgress(s)}%</strong></td></tr></table>
-
-                        <div style="${sectionTitle}">2. Monthly Roadmap & Checklist Status</div>
-                        <table style="${tableStyle}"><thead><tr><th style="${thStyle} width: 20%;">Phase</th><th style="${thStyle} width: 15%;">Status</th><th style="${thStyle}">Key Tasks</th></tr></thead><tbody>
-                                ${s.checklist.map(stage => {
-                                    const completed = stage.tasks.filter(t => t.done).length;
-                                    const total = stage.tasks.length;
-                                    const isComplete = completed === total;
-                                    const statusColor = isComplete ? '#dcfce7' : (completed > 0 ? '#fff7ed' : '#f1f5f9');
-                                    const statusText = isComplete ? 'Completed' : (completed > 0 ? 'In Progress' : 'Pending');
-                                    return `<tr><td style="${tdStyle} font-weight: bold;">${stage.stage}</td><td style="${tdStyle} background-color: ${statusColor}; text-align: center; font-size: 10px; font-weight: bold;">${statusText}</td><td style="${tdStyle}"><ul style="margin: 0; padding-left: 15px; font-size: 10px;">${stage.tasks.map(t => `<li style="color: ${t.done ? '#64748b' : '#000'}; text-decoration: ${t.done ? 'line-through' : 'none'}">${t.text}</li>`).join('')}</ul></td></tr>`;
-                                }).join('')}
-                        </tbody></table>
-
-                        <div style="${sectionTitle}">3. Financial Health</div>
-                        <table style="${tableStyle}"><tr><th style="${thStyle}">Total Budget</th><th style="${thStyle}">Monthly Burn</th><th style="${thStyle}">Current Revenue</th><th style="${thStyle}">Cash Remaining</th></tr><tr><td style="${tdStyle} font-size: 14px;">$${s.finance.budget}</td><td style="${tdStyle} font-size: 14px; color: #dc2626;">$${s.finance.monthlyCost}</td><td style="${tdStyle} font-size: 14px; color: #059669;">$${s.finance.currentRevenue}</td><td style="${tdStyle} font-size: 14px; font-weight: bold;">$${cashLeft}</td></tr></table>
-                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Expense Breakdown:</div>
-                        <table style="${tableStyle}"><thead><tr><th style="${thStyle}">Item Description</th><th style="${thStyle} text-align: right;">Cost</th></tr></thead><tbody>${(s.finance.expenses || []).map(ex => `<tr><td style="${tdStyle}">${ex.item}</td><td style="${tdStyle} text-align: right;">$${ex.cost}</td></tr>`).join('')}</tbody></table>
-
-                        <div style="${sectionTitle}">4. Growth & Marketing</div>
-                        <table style="${tableStyle}"><tr><th style="${thStyle}">Total Leads</th><td style="${tdStyle}">${s.growth.leads}</td><th style="${thStyle}">Paying Customers</th><td style="${tdStyle}">${s.growth.customers}</td><th style="${thStyle}">Conversion Rate</th><td style="${tdStyle}">${s.growth.leads > 0 ? ((s.growth.customers / s.growth.leads)*100).toFixed(1) : 0}%</td></tr></table>
-                        <div style="margin-top: 20px; font-size: 10px; color: #94a3b8; text-align: center;">Generated using Startup Founder OS</div>
-                    </div>`;
-
-                container.innerHTML = html;
-                const opt = { margin: 10, filename: `${s.name.replace(/\s+/g, '_')}_MasterReport.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-                html2pdf().set(opt).from(container).save().then(() => { container.innerHTML = ''; });
+                const s = this.getStartup(id); const el = document.getElementById('pdf-export-container');
+                el.innerHTML = `<div style="padding:40px; font-family:sans-serif;"><h1>${s.name} - Report</h1><p>${s.industry} • ${new Date().toLocaleDateString()}</p><br><h3>Lean Canvas</h3><p><strong>Problem:</strong> ${s.canvas?.problem || '-'}</p><p><strong>Solution:</strong> ${s.canvas?.solution || '-'}</p><br><h3>Finance</h3><p>Total Raised: ৳${s.finance.investments.reduce((a,b)=>a+Number(b.amount),0)}</p></div>`;
+                html2pdf().from(el).save(`${s.name}_Report.pdf`);
             }
-
-            calculateProgress(s) {
-                let total = 0, completed = 0;
-                s.checklist.forEach(st => st.tasks.forEach(t => { total++; if(t.done) completed++; }));
-                return total === 0 ? 0 : Math.round((completed / total) * 100);
-            }
-            calculateExpenses(s) { return (s.finance.expenses || []).reduce((acc, curr) => acc + Number(curr.cost), 0); }
-            openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-            closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         }
 
-        // Attach to window object
-        window.app = new StartupOS();
+        window.app = new StartupMachine();
     </script>
 </body>
 </html>
