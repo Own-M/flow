@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Startup Founder OS | Ultimate Tracker</title>
+    <title>Startup Founder OS | Cloud Sync</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,27 +14,17 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- html2pdf.js for better PDF generation -->
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            900: '#0c4a6e',
-                        },
-                        accent: {
-                            500: '#8b5cf6', // Violet
-                        }
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' },
+                        accent: { 500: '#8b5cf6' }
                     }
                 }
             }
@@ -42,230 +32,281 @@
     </script>
 
     <style>
-        body {
-            background-color: #f8fafc;
-            -webkit-print-color-adjust: exact;
-        }
-
-        /* Custom Scrollbar for Desktop */
+        body { background-color: #f8fafc; -webkit-print-color-adjust: exact; }
         @media (min-width: 768px) {
             ::-webkit-scrollbar { width: 8px; height: 8px; }
             ::-webkit-scrollbar-track { background: #f1f1f1; }
             ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
             ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         }
-
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Hide Scrollbar for horizontal nav */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        /* PDF Generation Container (Hidden normally) */
-        #pdf-export-container {
-            position: absolute;
-            left: -9999px;
-            top: 0;
-            width: 210mm; /* A4 width */
-            background: white;
-            padding: 0;
-            z-index: -1;
-        }
-
-        /* Standard Print Fixes */
-        @media print {
-            .no-print { display: none !important; }
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        #pdf-export-container { position: absolute; left: -9999px; top: 0; width: 210mm; background: white; padding: 0; z-index: -1; }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body class="text-slate-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-slate-50">
 
-    <!-- Sidebar (Desktop: Left, Mobile: Bottom) -->
+    <!-- Sidebar -->
     <aside class="md:w-20 w-full bg-slate-900 flex md:flex-col flex-row items-center justify-between md:justify-start md:py-6 py-3 px-4 shadow-xl z-50 no-print flex-shrink-0 order-2 md:order-1 fixed md:relative bottom-0 h-16 md:h-full">
-        <div class="md:mb-8 text-brand-500 text-2xl font-bold cursor-pointer hover:scale-110 transition md:block hidden" onclick="app.renderDashboard()" title="Dashboard">
+        <div class="md:mb-8 text-brand-500 text-2xl font-bold cursor-pointer hover:scale-110 transition md:block hidden" onclick="window.app.renderDashboard()" title="Dashboard">
             <i class="fa-solid fa-layer-group"></i>
         </div>
-
-        <!-- Mobile Dashboard Icon -->
-        <div class="text-brand-500 text-xl font-bold cursor-pointer md:hidden flex flex-col items-center" onclick="app.renderDashboard()">
+        <div class="text-brand-500 text-xl font-bold cursor-pointer md:hidden flex flex-col items-center" onclick="window.app.renderDashboard()">
             <i class="fa-solid fa-layer-group"></i>
             <span class="text-[10px] mt-1 font-normal">Home</span>
         </div>
-        
-        <div id="startup-list" class="flex md:flex-col flex-row gap-4 md:w-full md:px-2 overflow-x-auto md:overflow-y-auto scrollbar-hide items-center md:flex-1 justify-center md:justify-start">
-            <!-- Icons injected via JS -->
-        </div>
-
-        <!-- Add Button -->
-        <button onclick="app.openModal('createModal')" class="md:mt-4 p-2 md:p-3 bg-brand-600 text-white rounded-xl shadow-lg hover:bg-brand-500 transition transform hover:scale-105 flex flex-col items-center justify-center md:w-auto w-10 h-10" title="Add New Startup">
+        <div id="startup-list" class="flex md:flex-col flex-row gap-4 md:w-full md:px-2 overflow-x-auto md:overflow-y-auto scrollbar-hide items-center md:flex-1 justify-center md:justify-start"></div>
+        <button onclick="window.app.openModal('createModal')" class="md:mt-4 p-2 md:p-3 bg-brand-600 text-white rounded-xl shadow-lg hover:bg-brand-500 transition transform hover:scale-105 flex flex-col items-center justify-center md:w-auto w-10 h-10" title="Add New Startup">
             <i class="fa-solid fa-plus text-sm md:text-base"></i>
         </button>
     </aside>
 
     <!-- Main Content -->
     <main id="main-view" class="flex-1 overflow-y-auto relative p-0 bg-slate-50 w-full order-1 md:order-2 pb-16 md:pb-0">
-        <!-- Dynamic Content -->
+        <!-- Loader -->
+        <div class="h-full flex flex-col items-center justify-center text-slate-400">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-500 mb-4"></i>
+            <p>Loading Cloud Data...</p>
+        </div>
     </main>
 
-    <!-- Hidden Container for PDF Generation -->
+    <!-- PDF Container -->
     <div id="pdf-export-container"></div>
 
-    <!-- Modal: Create Startup -->
+    <!-- Modal -->
     <div id="createModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex justify-center items-center backdrop-blur-sm no-print p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md animate-fade-in">
             <h2 class="text-xl md:text-2xl font-bold mb-4 text-slate-800"><i class="fa-solid fa-rocket text-brand-500 mr-2"></i>New Venture</h2>
-            
             <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Startup Name</label>
-                    <input type="text" id="newStartupName" class="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="e.g. NextGen AI">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Founder Name</label>
-                    <input type="text" id="newFounderName" class="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="e.g. John Doe">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Industry</label>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Startup Name</label><input type="text" id="newStartupName" class="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-brand-500"></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Founder Name</label><input type="text" id="newFounderName" class="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-brand-500"></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Industry</label>
                     <select id="newStartupIndustry" class="w-full border border-slate-300 rounded-lg p-3 outline-none bg-white">
-                        <option>SaaS / Tech</option>
-                        <option>E-commerce</option>
-                        <option>Service Agency</option>
-                        <option>Fintech</option>
-                        <option>EdTech</option>
-                        <option>Other</option>
+                        <option>SaaS / Tech</option><option>E-commerce</option><option>Service Agency</option><option>Fintech</option><option>EdTech</option><option>Other</option>
                     </select>
                 </div>
             </div>
-
             <div class="flex justify-end gap-3 mt-8">
-                <button onclick="app.closeModal('createModal')" class="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition">Cancel</button>
-                <button onclick="app.createStartup()" class="px-5 py-2.5 bg-brand-600 text-white font-medium rounded-lg shadow hover:bg-brand-700 transition">Create & Track</button>
+                <button onclick="window.app.closeModal('createModal')" class="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+                <button onclick="window.app.createStartup()" class="px-5 py-2.5 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition">Create</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // --- Configuration & Data ---
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Constants
         const DEFAULT_CHECKLIST = [
-            { stage: "Validation", tasks: [
-                { id: 1, text: "Define Problem & Solution", done: false },
-                { id: 2, text: "Competitor Analysis", done: false },
-                { id: 3, text: "Define Target Persona", done: false }
-            ]},
-            { stage: "MVP Build", tasks: [
-                { id: 4, text: "Wireframing & UI Design", done: false },
-                { id: 5, text: "Develop Core Features", done: false },
-                { id: 6, text: "Set up Analytics", done: false }
-            ]},
-            { stage: "Launch", tasks: [
-                { id: 7, text: "Beta Launch (Waitlist)", done: false },
-                { id: 8, text: "Social Media Setup", done: false },
-                { id: 9, text: "Official Public Launch", done: false }
-            ]}
+            { stage: "Validation", tasks: [{ id: 1, text: "Define Problem & Solution", done: false }, { id: 2, text: "Competitor Analysis", done: false }, { id: 3, text: "Define Target Persona", done: false }] },
+            { stage: "MVP Build", tasks: [{ id: 4, text: "Wireframing & UI Design", done: false }, { id: 5, text: "Develop Core Features", done: false }, { id: 6, text: "Set up Analytics", done: false }] },
+            { stage: "Launch", tasks: [{ id: 7, text: "Beta Launch (Waitlist)", done: false }, { id: 8, text: "Social Media Setup", done: false }, { id: 9, text: "Official Public Launch", done: false }] }
         ];
 
         class StartupOS {
             constructor() {
-                this.startups = JSON.parse(localStorage.getItem('startup_os_v2')) || [];
+                this.startups = [];
                 this.activeStartupId = null;
-                this.activeTab = 'overview'; 
-                this.init();
+                this.activeTab = 'overview';
+                this.user = null;
+                this.unsubscribe = null;
+                
+                // Initialize Firebase
+                const firebaseConfig = JSON.parse(__firebase_config);
+                this.app = initializeApp(firebaseConfig);
+                this.auth = getAuth(this.app);
+                this.db = getFirestore(this.app);
+                this.appId = typeof __app_id !== 'undefined' ? __app_id : 'startup-os';
+                
+                this.initAuth();
             }
 
-            init() {
-                this.renderSidebar();
-                this.renderDashboard();
+            async initAuth() {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(this.auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(this.auth);
+                }
+
+                onAuthStateChanged(this.auth, (user) => {
+                    if (user) {
+                        this.user = user;
+                        this.setupRealtimeListener();
+                    }
+                });
             }
 
-            save() {
-                localStorage.setItem('startup_os_v2', JSON.stringify(this.startups));
-                this.renderSidebar();
+            setupRealtimeListener() {
+                if (this.unsubscribe) this.unsubscribe();
+                
+                // Using Firestore path: artifacts/{appId}/users/{userId}/startups
+                const q = collection(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups');
+                
+                this.unsubscribe = onSnapshot(q, (snapshot) => {
+                    this.startups = [];
+                    snapshot.forEach((doc) => {
+                        this.startups.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    // Initial render or re-render
+                    if (this.activeStartupId && !this.startups.find(s => s.id === this.activeStartupId)) {
+                        this.activeStartupId = null; // Reset if active startup was deleted
+                    }
+                    
+                    this.renderSidebar();
+                    if (this.activeStartupId) {
+                        this.renderStartup(this.activeStartupId);
+                    } else {
+                        this.renderDashboard();
+                    }
+                }, (error) => {
+                    console.error("Error fetching data:", error);
+                });
             }
 
-            // --- Core Actions ---
+            // --- Database Actions ---
 
-            createStartup() {
+            async createStartup() {
                 const name = document.getElementById('newStartupName').value;
                 const founder = document.getElementById('newFounderName').value;
                 const industry = document.getElementById('newStartupIndustry').value;
                 
-                if (!name) return alert("Startup Name is required!");
+                if (!name) return alert("Name required!");
 
                 const newStartup = {
-                    id: Date.now(),
-                    name: name,
-                    founder: founder || "Founder",
-                    industry: industry,
-                    logo: null, 
-                    founded: new Date().toLocaleDateString(),
-                    model: "Product", // Service, Product, Hybrid
-                    stage: "Idea", 
-                    targetMarket: "",
-                    launchDate: "",
-                    
-                    checklist: JSON.parse(JSON.stringify(DEFAULT_CHECKLIST)),
-                    
-                    finance: { 
-                        budget: 0, 
-                        monthlyCost: 0,
-                        currentRevenue: 0,
-                        expenses: [] 
-                    },
-                    
+                    name, founder: founder || "Founder", industry,
+                    logo: null, founded: new Date().toLocaleDateString(),
+                    model: "Product", stage: "Idea", targetMarket: "", launchDate: "",
+                    checklist: DEFAULT_CHECKLIST,
+                    finance: { budget: 0, monthlyCost: 0, currentRevenue: 0, expenses: [] },
                     marketing: { strategy: "", channels: [] },
-                    
-                    growth: {
-                        leads: 0,
-                        sales: 0,
-                        customers: 0,
-                        history: [] 
-                    },
-                    
+                    growth: { leads: 0, sales: 0, customers: 0 },
                     investment: { rounds: [] },
-                    notes: "" 
+                    notes: ""
                 };
 
-                this.startups.push(newStartup);
-                this.save();
-                this.closeModal('createModal');
-                this.openStartup(newStartup.id);
-                
-                // Reset form
-                document.getElementById('newStartupName').value = '';
-                document.getElementById('newFounderName').value = '';
+                try {
+                    const docRef = await addDoc(collection(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups'), newStartup);
+                    this.closeModal('createModal');
+                    this.activeStartupId = docRef.id; // Auto switch to new
+                    document.getElementById('newStartupName').value = '';
+                } catch (e) {
+                    console.error("Error adding doc: ", e);
+                    alert("Could not save to cloud.");
+                }
             }
 
-            deleteStartup(id) {
-                if(confirm("Delete this startup project?")) {
-                    this.startups = this.startups.filter(s => s.id !== id);
-                    this.save();
-                    this.renderDashboard();
+            async deleteStartup(id) {
+                if(confirm("Delete this project? This cannot be undone.")) {
+                    await deleteDoc(doc(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups', id));
+                    if(this.activeStartupId === id) this.activeStartupId = null;
                 }
+            }
+
+            async updateCloud(id, data) {
+                // Debounce could be added here for performance
+                const docRef = doc(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'startups', id);
+                await updateDoc(docRef, data);
+            }
+
+            // --- Helpers for Updates ---
+            
+            getStartup(id) { return this.startups.find(s => s.id === id); }
+
+            updateField(id, path, value) {
+                const s = this.getStartup(id);
+                // We need to update local object for immediate UI feedback (if we don't wait for snapshot)
+                // But mainly we construct the update object for Firestore
+                // Firestore supports dot notation for nested updates!
+                const updateObj = {};
+                updateObj[path] = value;
+                
+                this.updateCloud(id, updateObj);
             }
 
             updateLogo(id, input) {
                 const file = input.files[0];
                 if (file) {
+                    if (file.size > 800000) return alert("Image too large! Use < 800KB"); // Firestore doc limit safety
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        const s = this.getStartup(id);
-                        s.logo = reader.result;
-                        this.save();
-                        this.renderStartup(id);
+                        this.updateCloud(id, { logo: reader.result });
                     };
                     reader.readAsDataURL(file);
                 }
             }
 
-            getStartup(id) { return this.startups.find(s => s.id === id); }
+            toggleTask(id, stageIdx, taskIdx) {
+                const s = this.getStartup(id);
+                const newChecklist = [...s.checklist];
+                newChecklist[stageIdx].tasks[taskIdx].done = !newChecklist[stageIdx].tasks[taskIdx].done;
+                this.updateCloud(id, { checklist: newChecklist });
+            }
 
-            // --- Rendering ---
+            // Arrays (Expenses, Channels, Rounds) - Read, Modify, Write whole array
+            updateArray(id, arrayName, newArray) {
+                const updateObj = {};
+                updateObj[arrayName] = newArray;
+                this.updateCloud(id, updateObj);
+            }
+
+            // Wrapper for array manipulations to keep UI logic clean
+            modifyArrayItem(id, listType, idx, field, value) {
+                const s = this.getStartup(id);
+                let list;
+                let path;
+                
+                if (listType === 'marketing') { list = [...s.marketing.channels]; path = 'marketing.channels'; }
+                else if (listType === 'finance') { list = [...s.finance.expenses]; path = 'finance.expenses'; }
+                else if (listType === 'investment') { list = [...s.investment.rounds]; path = 'investment.rounds'; }
+
+                if (list[idx]) {
+                    list[idx][field] = value;
+                    this.updateCloud(id, { [path]: list });
+                }
+            }
+            
+            addItem(id, listType) {
+                const s = this.getStartup(id);
+                if (listType === 'marketing') {
+                    const list = s.marketing.channels ? [...s.marketing.channels] : [];
+                    list.push({ name: '', status: 'Planned' });
+                    this.updateCloud(id, { 'marketing.channels': list });
+                } else if (listType === 'finance') {
+                    const list = s.finance.expenses ? [...s.finance.expenses] : [];
+                    list.push({ item: 'New Item', cost: 0 });
+                    this.updateCloud(id, { 'finance.expenses': list });
+                } else if (listType === 'investment') {
+                    const list = s.investment.rounds ? [...s.investment.rounds] : [];
+                    list.push({ name: '', amount: 0, investor: '' });
+                    this.updateCloud(id, { 'investment.rounds': list });
+                }
+            }
+
+            removeItem(id, listType, idx) {
+                const s = this.getStartup(id);
+                if (listType === 'marketing') {
+                    const list = [...s.marketing.channels];
+                    list.splice(idx, 1);
+                    this.updateCloud(id, { 'marketing.channels': list });
+                } else if (listType === 'finance') {
+                    const list = [...s.finance.expenses];
+                    list.splice(idx, 1);
+                    this.updateCloud(id, { 'finance.expenses': list });
+                } else if (listType === 'investment') {
+                    const list = [...s.investment.rounds];
+                    list.splice(idx, 1);
+                    this.updateCloud(id, { 'investment.rounds': list });
+                }
+            }
+
+            // --- Rendering (Same as before but accessing this.startups) ---
 
             renderSidebar() {
                 const list = document.getElementById('startup-list');
@@ -273,76 +314,59 @@
                 this.startups.forEach(s => {
                     const isActive = this.activeStartupId === s.id;
                     const div = document.createElement('div');
-                    // Responsive sizing: smaller on mobile
                     div.className = `w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center cursor-pointer transition border-2 shadow-sm flex-shrink-0 ${isActive ? 'border-brand-500 bg-white ring-2 ring-brand-500/30' : 'border-slate-700 bg-slate-800 hover:border-slate-500'}`;
                     div.onclick = () => this.openStartup(s.id);
                     div.title = s.name;
-                    
-                    if (s.logo) {
-                        div.innerHTML = `<img src="${s.logo}" class="w-full h-full object-cover rounded-[10px]">`;
-                    } else {
-                        div.innerHTML = `<span class="${isActive ? 'text-brand-600' : 'text-slate-400'} font-bold text-sm md:text-lg">${s.name.substring(0,2).toUpperCase()}</span>`;
-                    }
+                    div.innerHTML = s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover rounded-[10px]">` : `<span class="${isActive ? 'text-brand-600' : 'text-slate-400'} font-bold text-sm md:text-lg">${s.name.substring(0,2).toUpperCase()}</span>`;
                     list.appendChild(div);
                 });
             }
 
             renderDashboard() {
                 this.activeStartupId = null;
-                this.renderSidebar();
                 const main = document.getElementById('main-view');
+                if (this.startups.length === 0) {
+                     main.innerHTML = `
+                        <div class="h-full flex flex-col items-center justify-center p-8 text-center">
+                            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-3xl text-slate-300 mb-4"><i class="fa-solid fa-rocket"></i></div>
+                            <h2 class="text-2xl font-bold text-slate-800">No Startups Yet</h2>
+                            <p class="text-slate-500 mb-6">Start your journey by adding your first venture.</p>
+                            <button onclick="window.app.openModal('createModal')" class="bg-brand-600 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-brand-700">Create New Venture</button>
+                        </div>`;
+                     return;
+                }
                 
                 main.innerHTML = `
                     <div class="p-6 md:p-12 max-w-7xl mx-auto fade-in pb-20 md:pb-12">
                         <header class="mb-8 md:mb-12 text-center md:text-left">
-                            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Founder OS</h1>
-                            <p class="text-slate-500 mt-2 text-base md:text-lg">Build, Track, Scale.</p>
+                            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Founder OS <span class="text-brand-500 text-sm align-top">CLOUD</span></h1>
+                            <p class="text-slate-500 mt-2 text-base md:text-lg">All your startups, synced & secure.</p>
                         </header>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <!-- Create New -->
-                            <div onclick="app.openModal('createModal')" class="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition min-h-[180px] md:min-h-[220px] group">
-                                <div class="w-12 h-12 md:w-16 md:h-16 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-4 group-hover:scale-110 transition shadow-inner">
-                                    <i class="fa-solid fa-plus"></i>
-                                </div>
-                                <h3 class="font-bold text-slate-700 text-base md:text-lg">Add New Venture</h3>
+                            <div onclick="window.app.openModal('createModal')" class="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition min-h-[200px] group">
+                                <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition"><i class="fa-solid fa-plus"></i></div>
+                                <h3 class="font-bold text-slate-700">Add New Venture</h3>
                             </div>
-
                             ${this.startups.map(s => {
                                 const progress = this.calculateProgress(s);
                                 return `
-                                <div onclick="app.openStartup(${s.id})" class="bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 p-6 cursor-pointer transition flex flex-col justify-between group relative overflow-hidden min-h-[220px]">
+                                <div onclick="window.app.openStartup('${s.id}')" class="bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 p-6 cursor-pointer transition flex flex-col justify-between group relative overflow-hidden min-h-[220px]">
                                     <div class="flex items-start justify-between mb-4">
                                         <div class="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-inner">
                                             ${s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover">` : `<span class="font-bold text-slate-400 text-xl">${s.name.substring(0,2).toUpperCase()}</span>`}
                                         </div>
                                         <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 uppercase tracking-wide">${s.stage}</span>
                                     </div>
-                                    
-                                    <div>
-                                        <h3 class="font-bold text-xl text-slate-800 mb-1 group-hover:text-brand-600 transition truncate">${s.name}</h3>
-                                        <p class="text-sm text-slate-500">${s.industry}</p>
-                                    </div>
-
+                                    <div><h3 class="font-bold text-xl text-slate-800 mb-1 group-hover:text-brand-600 transition truncate">${s.name}</h3><p class="text-sm text-slate-500">${s.industry}</p></div>
                                     <div class="mt-4">
-                                        <div class="flex justify-between text-xs text-slate-500 mb-1.5">
-                                            <span>Launch Readiness</span>
-                                            <span class="font-mono">${progress}%</span>
-                                        </div>
-                                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                            <div class="bg-gradient-to-r from-brand-500 to-accent-500 h-2 rounded-full" style="width: ${progress}%"></div>
-                                        </div>
+                                        <div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Launch Readiness</span><span class="font-mono">${progress}%</span></div>
+                                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden"><div class="bg-brand-500 h-2 rounded-full" style="width: ${progress}%"></div></div>
                                     </div>
-
-                                    <button onclick="event.stopPropagation(); app.deleteStartup(${s.id})" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 md:opacity-0 md:group-hover:opacity-100 transition z-10">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </div>
-                                `;
+                                    <button onclick="event.stopPropagation(); window.app.deleteStartup('${s.id}')" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 md:opacity-0 md:group-hover:opacity-100 transition z-10"><i class="fa-solid fa-trash"></i></button>
+                                </div>`;
                             }).join('')}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
 
             openStartup(id) {
@@ -354,17 +378,14 @@
             renderStartup(id) {
                 const s = this.getStartup(id);
                 if (!s) return this.renderDashboard();
-
                 const main = document.getElementById('main-view');
-                
                 main.innerHTML = `
                     <div class="h-full flex flex-col bg-white">
-                        <!-- Top Bar (Mobile Optimized) -->
                         <div class="bg-white border-b border-slate-200 px-4 md:px-6 py-4 flex justify-between items-center no-print sticky top-0 z-20 shadow-sm">
                             <div class="flex items-center gap-3 md:gap-4 overflow-hidden">
                                 <div class="relative group cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                                     ${s.logo ? `<img src="${s.logo}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-camera text-slate-400"></i>`}
-                                    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="app.updateLogo(${s.id}, this)">
+                                    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="window.app.updateLogo('${s.id}', this)">
                                 </div>
                                 <div class="min-w-0">
                                     <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight truncate">${s.name}</h1>
@@ -374,18 +395,11 @@
                                 </div>
                             </div>
                             <div class="flex gap-2 flex-shrink-0">
-                                <button onclick="app.downloadPDF(${s.id})" class="flex items-center gap-1 md:gap-2 px-3 py-2 bg-brand-50 text-brand-700 font-medium rounded-lg hover:bg-brand-100 transition text-xs md:text-sm">
-                                    <i class="fa-solid fa-download"></i> <span class="hidden md:inline">Report</span>
-                                </button>
-                                <button onclick="app.renderDashboard()" class="px-3 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition text-xs md:text-sm">
-                                    <i class="fa-solid fa-times text-lg"></i>
-                                </button>
+                                <button onclick="window.app.downloadPDF('${s.id}')" class="flex items-center gap-1 md:gap-2 px-3 py-2 bg-brand-50 text-brand-700 font-medium rounded-lg hover:bg-brand-100 transition text-xs md:text-sm"><i class="fa-solid fa-download"></i> <span class="hidden md:inline">Report</span></button>
+                                <button onclick="window.app.renderDashboard()" class="px-3 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition text-xs md:text-sm"><i class="fa-solid fa-times text-lg"></i></button>
                             </div>
                         </div>
-
-                        <!-- Workspace -->
                         <div class="flex-1 overflow-hidden flex flex-col md:flex-row pb-16 md:pb-0">
-                            <!-- Nav (Mobile: Horizontal Scroll, Desktop: Vertical) -->
                             <div class="w-full md:w-60 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-2 md:p-3 no-print overflow-x-auto md:overflow-y-auto flex-shrink-0 flex md:block gap-2 scrollbar-hide">
                                 ${this.navButton('overview', 'fa-chart-pie', 'Status')}
                                 ${this.navButton('checklist', 'fa-list-check', 'Checklist')}
@@ -395,32 +409,20 @@
                                 ${this.navButton('content', 'fa-pen-nib', 'Content')}
                                 ${this.navButton('investment', 'fa-handshake', 'Invest')}
                             </div>
-
-                            <!-- Content Area -->
                             <div class="flex-1 overflow-y-auto bg-white p-4 md:p-10" id="tab-container">
                                 ${this.renderTabContent(s)}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
 
             navButton(id, icon, label) {
                 const isActive = this.activeTab === id;
-                return `
-                    <button onclick="app.switchTab('${id}')" class="flex-shrink-0 whitespace-nowrap md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-3 py-2 md:py-2.5 text-xs md:text-sm font-medium rounded-lg transition ${isActive ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:bg-slate-200'}">
-                        <i class="fa-solid ${icon} w-4 md:w-5 text-center ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i> ${label}
-                    </button>
-                `;
+                return `<button onclick="window.app.switchTab('${id}')" class="flex-shrink-0 whitespace-nowrap md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-3 py-2 md:py-2.5 text-xs md:text-sm font-medium rounded-lg transition ${isActive ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:bg-slate-200'}"><i class="fa-solid ${icon} w-4 md:w-5 text-center ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i> ${label}</button>`;
             }
-
-            switchTab(tabId) {
-                this.activeTab = tabId;
-                this.renderStartup(this.activeStartupId);
-            }
+            switchTab(tabId) { this.activeTab = tabId; this.renderStartup(this.activeStartupId); }
 
             renderTabContent(s) {
-                // Return content based on activeTab
                 if (this.activeTab === 'overview') return this.renderOverviewTab(s);
                 if (this.activeTab === 'growth') return this.renderGrowthTab(s);
                 if (this.activeTab === 'finance') return this.renderFinanceTab(s);
@@ -430,273 +432,118 @@
                 if (this.activeTab === 'investment') return this.renderInvestmentTab(s);
             }
 
-            // --- TAB RENDERERS (Optimized for Mobile) ---
-
             renderOverviewTab(s) {
                 const cashLeft = s.finance.budget - this.calculateExpenses(s);
                 return `
                     <div class="fade-in max-w-4xl mx-auto">
                         <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4 md:mb-6">Status Dashboard</h2>
-                        
-                        <!-- Status Table -->
                         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6 md:mb-8">
                             <div class="bg-slate-50 px-4 md:px-6 py-3 border-b border-slate-200 font-semibold text-slate-700 text-sm md:text-base">Project Essentials</div>
                             <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
                                 <div class="p-4 md:p-6 space-y-4">
                                     ${this.inputRow(s.id, 'Founder', s.founder, 'founder')}
-                                    ${this.inputRow(s.id, 'Business Model', s.model, 'model', 'Product/Service/Hybrid')}
-                                    ${this.inputRow(s.id, 'Target Market', s.targetMarket, 'targetMarket', 'e.g. Gen-Z in Dhaka')}
+                                    ${this.inputRow(s.id, 'Business Model', s.model, 'model')}
+                                    ${this.inputRow(s.id, 'Target Market', s.targetMarket, 'targetMarket')}
                                 </div>
                                 <div class="p-4 md:p-6 space-y-4">
                                     ${this.selectRow(s.id, 'Current Stage', s.stage, 'stage', ['Idea', 'Validation', 'MVP Build', 'Launch', 'Scaling'])}
-                                    ${this.inputRow(s.id, 'Launch Date', s.launchDate, 'launchDate', 'YYYY-MM-DD', 'date')}
+                                    ${this.inputRow(s.id, 'Launch Date', s.launchDate, 'launchDate', 'date')}
                                     <div class="pt-2">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <label class="text-xs font-medium text-slate-500">Execution Progress</label>
-                                            <span class="text-brand-600 font-bold text-sm">${this.calculateProgress(s)}%</span>
-                                        </div>
-                                        <div class="w-full bg-slate-100 rounded-full h-2">
-                                            <div class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width: ${this.calculateProgress(s)}%"></div>
-                                        </div>
+                                        <div class="flex justify-between items-center mb-1"><label class="text-xs font-medium text-slate-500">Execution Progress</label><span class="text-brand-600 font-bold text-sm">${this.calculateProgress(s)}%</span></div>
+                                        <div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width: ${this.calculateProgress(s)}%"></div></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Financial Snapshot Mini -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
-                            <div class="bg-blue-50 p-3 md:p-4 rounded-xl border border-blue-100">
-                                <div class="text-[10px] md:text-xs text-blue-500 font-bold uppercase">Budget</div>
-                                <div class="text-base md:text-xl font-bold text-blue-900 truncate">$${s.finance.budget}</div>
-                            </div>
-                            <div class="bg-red-50 p-3 md:p-4 rounded-xl border border-red-100">
-                                <div class="text-[10px] md:text-xs text-red-500 font-bold uppercase">Burn/Mo</div>
-                                <div class="text-base md:text-xl font-bold text-red-900 truncate">$${s.finance.monthlyCost}</div>
-                            </div>
-                             <div class="bg-emerald-50 p-3 md:p-4 rounded-xl border border-emerald-100">
-                                <div class="text-[10px] md:text-xs text-emerald-500 font-bold uppercase">Revenue</div>
-                                <div class="text-base md:text-xl font-bold text-emerald-900 truncate">$${s.finance.currentRevenue}</div>
-                            </div>
-                            <div class="bg-slate-50 p-3 md:p-4 rounded-xl border border-slate-200">
-                                <div class="text-[10px] md:text-xs text-slate-500 font-bold uppercase">Cash Left</div>
-                                <div class="text-base md:text-xl font-bold text-slate-800 truncate">$${cashLeft}</div>
-                            </div>
+                            <div class="bg-blue-50 p-3 md:p-4 rounded-xl border border-blue-100"><div class="text-[10px] md:text-xs text-blue-500 font-bold uppercase">Budget</div><div class="text-base md:text-xl font-bold text-blue-900 truncate">$${s.finance.budget}</div></div>
+                            <div class="bg-red-50 p-3 md:p-4 rounded-xl border border-red-100"><div class="text-[10px] md:text-xs text-red-500 font-bold uppercase">Burn/Mo</div><div class="text-base md:text-xl font-bold text-red-900 truncate">$${s.finance.monthlyCost}</div></div>
+                            <div class="bg-emerald-50 p-3 md:p-4 rounded-xl border border-emerald-100"><div class="text-[10px] md:text-xs text-emerald-500 font-bold uppercase">Revenue</div><div class="text-base md:text-xl font-bold text-emerald-900 truncate">$${s.finance.currentRevenue}</div></div>
+                            <div class="bg-slate-50 p-3 md:p-4 rounded-xl border border-slate-200"><div class="text-[10px] md:text-xs text-slate-500 font-bold uppercase">Cash Left</div><div class="text-base md:text-xl font-bold text-slate-800 truncate">$${cashLeft}</div></div>
                         </div>
-
-                        <!-- Timeline Visual -->
-                        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-6 overflow-x-auto">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm md:text-base">Project Timeline</h3>
-                            <div class="min-w-[300px]">
-                                <div class="relative flex items-center justify-between mt-4 mb-4 px-2">
-                                    <div class="absolute left-0 right-0 top-1/2 h-1 bg-slate-100 -z-10"></div>
-                                    ${['Idea', 'Validation', 'MVP', 'Launch', 'Growth'].map((step, idx) => {
-                                        const currentStageIdx = ['Idea', 'Validation', 'MVP Build', 'Launch', 'Scaling'].indexOf(s.stage);
-                                        const isDone = idx <= currentStageIdx;
-                                        return `
-                                        <div class="flex flex-col items-center gap-2 bg-white px-1">
-                                            <div class="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center border-2 transition ${isDone ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-slate-300 text-slate-300'}">
-                                                <i class="fa-solid fa-check text-[10px] md:text-xs"></i>
-                                            </div>
-                                            <span class="text-[10px] md:text-xs font-medium ${isDone ? 'text-brand-600' : 'text-slate-400'}">${step}</span>
-                                        </div>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            renderGrowthTab(s) {
-                return `
-                    <div class="fade-in max-w-4xl mx-auto">
-                        <div class="flex justify-between items-end mb-6">
-                            <div>
-                                <h2 class="text-xl md:text-2xl font-bold text-slate-800">Growth Metrics</h2>
-                                <p class="text-slate-500 text-xs md:text-sm">Track your sales funnel.</p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Total Leads</label>
-                                <input type="number" value="${s.growth.leads}" onchange="app.updateField(${s.id}, 'growth.leads', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
-                            </div>
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Paying Customers</label>
-                                <input type="number" value="${s.growth.customers}" onchange="app.updateField(${s.id}, 'growth.customers', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
-                            </div>
-                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Total Sales ($)</label>
-                                <input type="number" value="${s.growth.sales}" onchange="app.updateField(${s.id}, 'growth.sales', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500">
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-                            <h3 class="font-bold text-slate-800 mb-4">Conversion Analysis</h3>
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span>Lead to Customer</span>
-                                        <span class="font-mono font-bold">${s.growth.leads > 0 ? ((s.growth.customers / s.growth.leads)*100).toFixed(1) : 0}%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 rounded-full h-2">
-                                        <div class="bg-emerald-500 h-2 rounded-full" style="width: ${s.growth.leads > 0 ? ((s.growth.customers / s.growth.leads)*100) : 0}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                    </div>`;
             }
 
             renderFinanceTab(s) {
-                const expenses = this.calculateExpenses(s);
-                return `
+                 const expenses = this.calculateExpenses(s);
+                 return `
                     <div class="fade-in max-w-4xl mx-auto">
                         <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Financial Overview</h2>
-                        
                         <div class="bg-slate-900 text-white rounded-2xl p-6 md:p-8 mb-8 shadow-xl relative overflow-hidden">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                                <div>
-                                    <label class="text-slate-400 text-xs font-bold uppercase">Initial Investment</label>
-                                    <div class="flex items-center mt-1">
-                                        <span class="text-2xl mr-1">$</span>
-                                        <input type="number" value="${s.finance.budget}" onchange="app.updateField(${s.id}, 'finance.budget', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-white">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-slate-400 text-xs font-bold uppercase">Current Revenue/Mo</label>
-                                    <div class="flex items-center mt-1">
-                                        <span class="text-2xl mr-1 text-emerald-400">$</span>
-                                        <input type="number" value="${s.finance.currentRevenue}" onchange="app.updateField(${s.id}, 'finance.currentRevenue', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-emerald-400 text-emerald-400">
-                                    </div>
-                                </div>
-                                 <div>
-                                    <label class="text-slate-400 text-xs font-bold uppercase">Fixed Monthly Cost</label>
-                                    <div class="flex items-center mt-1">
-                                        <span class="text-xl mr-1 text-red-300">$</span>
-                                        <input type="number" value="${s.finance.monthlyCost}" onchange="app.updateField(${s.id}, 'finance.monthlyCost', this.value)" class="bg-transparent text-2xl font-bold w-full outline-none border-b border-slate-700 focus:border-red-300 text-red-300">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-slate-400 text-xs font-bold uppercase">Remaining Budget</label>
-                                    <div class="text-3xl font-bold mt-1 text-white">$${s.finance.budget - expenses}</div>
-                                </div>
-                            </div>
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                                <div><label class="text-slate-400 text-xs font-bold uppercase">Initial Investment</label><div class="flex items-center mt-1"><span class="text-2xl mr-1">$</span><input type="number" value="${s.finance.budget}" onchange="window.app.updateField('${s.id}', 'finance.budget', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-white"></div></div>
+                                <div><label class="text-slate-400 text-xs font-bold uppercase">Revenue/Mo</label><div class="flex items-center mt-1"><span class="text-2xl mr-1 text-emerald-400">$</span><input type="number" value="${s.finance.currentRevenue}" onchange="window.app.updateField('${s.id}', 'finance.currentRevenue', this.value)" class="bg-transparent text-2xl md:text-3xl font-bold w-full outline-none border-b border-slate-700 focus:border-emerald-400 text-emerald-400"></div></div>
+                                <div><label class="text-slate-400 text-xs font-bold uppercase">Fixed Cost</label><div class="flex items-center mt-1"><span class="text-xl mr-1 text-red-300">$</span><input type="number" value="${s.finance.monthlyCost}" onchange="window.app.updateField('${s.id}', 'finance.monthlyCost', this.value)" class="bg-transparent text-2xl font-bold w-full outline-none border-b border-slate-700 focus:border-red-300 text-red-300"></div></div>
+                                <div><label class="text-slate-400 text-xs font-bold uppercase">Remaining</label><div class="text-3xl font-bold mt-1 text-white">$${s.finance.budget - expenses}</div></div>
+                             </div>
                         </div>
-
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200">
-                            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
-                                <h3 class="font-bold text-slate-800">Expenses</h3>
-                                <button onclick="app.addExpense(${s.id})" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700 transition">Add Item</button>
-                            </div>
-                            <div class="max-h-96 overflow-y-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-white text-slate-500 sticky top-0">
-                                        <tr>
-                                            <th class="px-4 md:px-6 py-3 font-medium">Item</th>
-                                            <th class="px-4 md:px-6 py-3 font-medium">Cost</th>
-                                            <th class="px-2 py-3 w-8"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100">
-                                        ${s.finance.expenses.map((ex, idx) => `
-                                            <tr class="group hover:bg-slate-50">
-                                                <td class="px-4 md:px-6 py-2">
-                                                    <input type="text" value="${ex.item}" onchange="app.updateExpense(${s.id}, ${idx}, 'item', this.value)" class="w-full bg-transparent outline-none py-1">
-                                                </td>
-                                                <td class="px-4 md:px-6 py-2">
-                                                    <input type="number" value="${ex.cost}" onchange="app.updateExpense(${s.id}, ${idx}, 'cost', this.value)" class="w-full bg-transparent outline-none py-1 text-slate-700 font-mono">
-                                                </td>
-                                                <td class="px-2 py-2 text-center">
-                                                    <button onclick="app.removeExpense(${s.id}, ${idx})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl"><h3 class="font-bold text-slate-800">Expenses</h3><button onclick="window.app.addItem('${s.id}', 'finance')" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700 transition">Add Item</button></div>
+                            <div class="max-h-96 overflow-y-auto"><table class="w-full text-left text-sm"><thead class="bg-white text-slate-500 sticky top-0"><tr><th class="px-4 md:px-6 py-3 font-medium">Item</th><th class="px-4 md:px-6 py-3 font-medium">Cost</th><th class="px-2 py-3 w-8"></th></tr></thead><tbody class="divide-y divide-slate-100">
+                                ${s.finance.expenses.map((ex, idx) => `
+                                    <tr class="group hover:bg-slate-50">
+                                        <td class="px-4 md:px-6 py-2"><input type="text" value="${ex.item}" onchange="window.app.modifyArrayItem('${s.id}', 'finance', ${idx}, 'item', this.value)" class="w-full bg-transparent outline-none py-1"></td>
+                                        <td class="px-4 md:px-6 py-2"><input type="number" value="${ex.cost}" onchange="window.app.modifyArrayItem('${s.id}', 'finance', ${idx}, 'cost', this.value)" class="w-full bg-transparent outline-none py-1 text-slate-700 font-mono"></td>
+                                        <td class="px-2 py-2 text-center"><button onclick="window.app.removeItem('${s.id}', 'finance', ${idx})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button></td>
+                                    </tr>`).join('')}
+                            </tbody></table></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
+            }
+
+            renderGrowthTab(s) {
+                 return `
+                    <div class="fade-in max-w-4xl mx-auto">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Growth Metrics</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><label class="text-xs font-bold text-slate-500 uppercase">Total Leads</label><input type="number" value="${s.growth.leads}" onchange="window.app.updateField('${s.id}', 'growth.leads', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500"></div>
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><label class="text-xs font-bold text-slate-500 uppercase">Customers</label><input type="number" value="${s.growth.customers}" onchange="window.app.updateField('${s.id}', 'growth.customers', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500"></div>
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><label class="text-xs font-bold text-slate-500 uppercase">Sales ($)</label><input type="number" value="${s.growth.sales}" onchange="window.app.updateField('${s.id}', 'growth.sales', this.value)" class="mt-2 text-3xl font-bold text-slate-800 w-full outline-none border-b border-transparent focus:border-brand-500"></div>
+                        </div>
+                    </div>`;
             }
 
             renderChecklistTab(s) {
                  return `
                     <div class="fade-in max-w-4xl mx-auto">
                         <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Execution Checklist</h2>
-                         <div class="space-y-6">
+                        <div class="space-y-6">
                             ${s.checklist.map((stage, stageIdx) => `
                                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
-                                        <h3 class="font-bold text-slate-800 text-sm md:text-base">${stage.stage}</h3>
-                                        <span class="text-[10px] md:text-xs font-mono text-slate-400 bg-white px-2 py-1 border rounded shadow-sm">PHASE 0${stageIdx+1}</span>
-                                    </div>
+                                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-800 text-sm md:text-base">${stage.stage}</h3><span class="text-[10px] md:text-xs font-mono text-slate-400 bg-white px-2 py-1 border rounded shadow-sm">PHASE 0${stageIdx+1}</span></div>
                                     <div class="p-4 md:p-6 space-y-3">
                                         ${stage.tasks.map((task, taskIdx) => `
                                             <div class="flex items-start gap-3 group p-2 hover:bg-slate-50 rounded-lg transition">
-                                                <input type="checkbox" onchange="app.toggleTask(${s.id}, ${stageIdx}, ${taskIdx})" 
-                                                    class="mt-1 w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer" 
-                                                    ${task.done ? 'checked' : ''}>
-                                                <div class="${task.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} flex-1 select-none text-sm md:text-base">
-                                                    ${task.text}
-                                                </div>
-                                            </div>
-                                        `).join('')}
+                                                <input type="checkbox" onchange="window.app.toggleTask('${s.id}', ${stageIdx}, ${taskIdx})" class="mt-1 w-5 h-5 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer" ${task.done ? 'checked' : ''}>
+                                                <div class="${task.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} flex-1 select-none text-sm md:text-base">${task.text}</div>
+                                            </div>`).join('')}
                                     </div>
-                                </div>
-                            `).join('')}
+                                </div>`).join('')}
                         </div>
-                    </div>
-                 `;
+                    </div>`;
             }
-
+            
             renderMarketingTab(s) {
                  return `
                     <div class="fade-in max-w-4xl mx-auto">
                         <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Marketing Strategy</h2>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                            <h3 class="font-bold text-slate-800 mb-2">Core Strategy</h3>
-                            <textarea oninput="app.updateField(${s.id}, 'marketing.strategy', this.value)" 
-                                class="w-full h-40 border border-slate-200 rounded-lg p-3 text-slate-700 outline-none focus:border-brand-500 bg-slate-50" 
-                                placeholder="Describe your Go-to-Market strategy...">${s.marketing.strategy}</textarea>
-                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6"><h3 class="font-bold text-slate-800 mb-2">Core Strategy</h3><textarea onchange="window.app.updateField('${s.id}', 'marketing.strategy', this.value)" class="w-full h-40 border border-slate-200 rounded-lg p-3 text-slate-700 outline-none focus:border-brand-500 bg-slate-50" placeholder="Go-to-Market strategy...">${s.marketing.strategy}</textarea></div>
                          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-slate-800">Channels</h3>
-                                <button onclick="app.addChannel(${s.id})" class="text-sm text-brand-600 font-medium">+ Add Channel</button>
-                            </div>
+                            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-800">Channels</h3><button onclick="window.app.addItem('${s.id}', 'marketing')" class="text-sm text-brand-600 font-medium">+ Add Channel</button></div>
                             <div class="space-y-3">
-                                ${s.marketing.channels.map((ch, idx) => `
+                                ${(s.marketing.channels || []).map((ch, idx) => `
                                     <div class="flex flex-col md:flex-row gap-2 md:items-center bg-slate-50 md:bg-white p-2 md:p-0 rounded">
-                                        <input type="text" value="${ch.name}" onchange="app.updateChannel(${s.id}, ${idx}, 'name', this.value)" class="flex-1 border border-slate-200 rounded p-2 text-sm outline-none" placeholder="Channel">
-                                        <select onchange="app.updateChannel(${s.id}, ${idx}, 'status', this.value)" class="border border-slate-200 rounded p-2 text-sm bg-white outline-none w-full md:w-auto">
-                                            <option ${ch.status === 'Planned' ? 'selected' : ''}>Planned</option>
-                                            <option ${ch.status === 'Live' ? 'selected' : ''}>Live</option>
-                                            <option ${ch.status === 'Paused' ? 'selected' : ''}>Paused</option>
-                                        </select>
-                                        <button onclick="app.removeChannel(${s.id}, ${idx})" class="text-slate-400 hover:text-red-500 px-2 self-end md:self-auto"><i class="fa-solid fa-times"></i></button>
-                                    </div>
-                                `).join('')}
+                                        <input type="text" value="${ch.name}" onchange="window.app.modifyArrayItem('${s.id}', 'marketing', ${idx}, 'name', this.value)" class="flex-1 border border-slate-200 rounded p-2 text-sm outline-none" placeholder="Channel">
+                                        <select onchange="window.app.modifyArrayItem('${s.id}', 'marketing', ${idx}, 'status', this.value)" class="border border-slate-200 rounded p-2 text-sm bg-white outline-none w-full md:w-auto"><option ${ch.status === 'Planned' ? 'selected' : ''}>Planned</option><option ${ch.status === 'Live' ? 'selected' : ''}>Live</option><option ${ch.status === 'Paused' ? 'selected' : ''}>Paused</option></select>
+                                        <button onclick="window.app.removeItem('${s.id}', 'marketing', ${idx})" class="text-slate-400 hover:text-red-500 px-2 self-end md:self-auto"><i class="fa-solid fa-times"></i></button>
+                                    </div>`).join('')}
                             </div>
                         </div>
-                    </div>
-                 `;
+                    </div>`;
             }
 
             renderContentTab(s) {
-                 return `
-                    <div class="fade-in max-w-4xl mx-auto h-full flex flex-col">
-                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4">Content Strategy</h2>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex-1 flex flex-col min-h-[400px]">
-                            <textarea oninput="app.updateField(${s.id}, 'notes', this.value)" 
-                                class="w-full h-full p-4 md:p-6 text-slate-700 outline-none resize-none font-mono text-sm leading-relaxed" 
-                                placeholder="# Content Calendar...">${s.notes}</textarea>
-                        </div>
-                    </div>
-                 `;
+                 return `<div class="fade-in max-w-4xl mx-auto h-full flex flex-col"><h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4">Content Strategy</h2><div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex-1 flex flex-col min-h-[400px]"><textarea onchange="window.app.updateField('${s.id}', 'notes', this.value)" class="w-full h-full p-4 md:p-6 text-slate-700 outline-none resize-none font-mono text-sm leading-relaxed" placeholder="# Content Calendar...">${s.notes}</textarea></div></div>`;
             }
             
             renderInvestmentTab(s) {
@@ -704,54 +551,32 @@
                     <div class="fade-in max-w-4xl mx-auto">
                         <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Investment</h2>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="font-bold text-slate-800">Funding Rounds</h3>
-                                <button onclick="app.addRound(${s.id})" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700">+ Add Round</button>
-                            </div>
-                            
+                            <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-slate-800">Funding Rounds</h3><button onclick="window.app.addItem('${s.id}', 'investment')" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded hover:bg-slate-700">+ Add Round</button></div>
                             <div class="grid gap-4">
-                                ${s.investment.rounds.map((r, idx) => `
+                                ${(s.investment.rounds || []).map((r, idx) => `
                                     <div class="border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row gap-4 bg-slate-50">
-                                        <input type="text" value="${r.name}" onchange="app.updateRound(${s.id}, ${idx}, 'name', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Seed Round">
-                                        <input type="number" value="${r.amount}" onchange="app.updateRound(${s.id}, ${idx}, 'amount', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Amount">
-                                        <input type="text" value="${r.investor}" onchange="app.updateRound(${s.id}, ${idx}, 'investor', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Investor">
-                                        <button onclick="app.removeRound(${s.id}, ${idx})" class="text-slate-400 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
-                                    </div>
-                                `).join('')}
+                                        <input type="text" value="${r.name}" onchange="window.app.modifyArrayItem('${s.id}', 'investment', ${idx}, 'name', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Seed Round">
+                                        <input type="number" value="${r.amount}" onchange="window.app.modifyArrayItem('${s.id}', 'investment', ${idx}, 'amount', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Amount">
+                                        <input type="text" value="${r.investor}" onchange="window.app.modifyArrayItem('${s.id}', 'investment', ${idx}, 'investor', this.value)" class="flex-1 bg-transparent border-b border-slate-300 outline-none pb-1" placeholder="Investor">
+                                        <button onclick="window.app.removeItem('${s.id}', 'investment', ${idx})" class="text-slate-400 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
+                                    </div>`).join('')}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
 
-            // --- Component Helpers ---
-            inputRow(id, label, value, field, placeholder = '', type='text') {
-                return `
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</label>
-                        <input type="${type}" value="${value}" onchange="app.updateField(${id}, '${field}', this.value)" class="w-full border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="${placeholder}">
-                    </div>
-                `;
+            inputRow(id, label, value, field, type='text') {
+                return `<div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</label><input type="${type}" value="${value}" onchange="window.app.updateField('${id}', '${field}', this.value)" class="w-full border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"></div>`;
             }
-
             selectRow(id, label, value, field, options) {
-                return `
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</label>
-                        <select onchange="app.updateField(${id}, '${field}', this.value)" class="w-full border border-slate-200 rounded p-2 text-sm bg-white outline-none">
-                            ${options.map(opt => `<option ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
+                return `<div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</label><select onchange="window.app.updateField('${id}', '${field}', this.value)" class="w-full border border-slate-200 rounded p-2 text-sm bg-white outline-none">${options.map(opt => `<option ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}</select></div>`;
             }
 
-            // --- PDF Generation Logic ---
             downloadPDF(id) {
                 const s = this.getStartup(id);
                 const container = document.getElementById('pdf-export-container');
                 const cashLeft = s.finance.budget - this.calculateExpenses(s);
                 
-                // --- TABLE STYLES ---
                 const tableStyle = `width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;`;
                 const thStyle = `background: #f1f5f9; padding: 8px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #334155;`;
                 const tdStyle = `padding: 8px; border: 1px solid #e2e8f0; color: #1e293b;`;
@@ -760,255 +585,50 @@
 
                 const html = `
                     <div style="font-family: 'Inter', sans-serif; color: #1e293b; padding: 20px;">
+                        <div style="${headerStyle}"><div><h1 style="font-size: 28px; font-weight: 800; margin: 0; text-transform: uppercase;">${s.name}</h1><p style="margin: 5px 0 0; font-size: 12px; color: #64748b;">${s.founder} | ${s.industry} | ${s.stage}</p></div><div style="text-align: right;"><div style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Generated On</div><div style="font-size: 12px; font-weight: bold;">${new Date().toLocaleDateString()}</div></div></div>
                         
-                        <!-- Header -->
-                        <div style="${headerStyle}">
-                            <div>
-                                <h1 style="font-size: 28px; font-weight: 800; margin: 0; text-transform: uppercase;">${s.name}</h1>
-                                <p style="margin: 5px 0 0; font-size: 12px; color: #64748b;">${s.founder} | ${s.industry} | ${s.stage}</p>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Generated On</div>
-                                <div style="font-size: 12px; font-weight: bold;">${new Date().toLocaleDateString()}</div>
-                            </div>
-                        </div>
+                        <div style="${sectionTitle}">1. Executive Summary</div>
+                        <table style="${tableStyle}"><tr><th style="${thStyle}">Business Model</th><td style="${tdStyle}">${s.model}</td><th style="${thStyle}">Target Market</th><td style="${tdStyle}">${s.targetMarket}</td></tr><tr><th style="${thStyle}">Launch Date</th><td style="${tdStyle}">${s.launchDate}</td><th style="${thStyle}">Execution Score</th><td style="${tdStyle}"><strong>${this.calculateProgress(s)}%</strong></td></tr></table>
 
-                        <!-- 1. EXECUTIVE SUMMARY & ROADMAP -->
-                        <div style="${sectionTitle}">1. Executive Summary & Status</div>
-                        <table style="${tableStyle}">
-                            <tr>
-                                <th style="${thStyle}">Business Model</th>
-                                <td style="${tdStyle}">${s.model}</td>
-                                <th style="${thStyle}">Target Market</th>
-                                <td style="${tdStyle}">${s.targetMarket}</td>
-                            </tr>
-                            <tr>
-                                <th style="${thStyle}">Launch Date</th>
-                                <td style="${tdStyle}">${s.launchDate}</td>
-                                <th style="${thStyle}">Execution Score</th>
-                                <td style="${tdStyle}"><strong>${this.calculateProgress(s)}%</strong></td>
-                            </tr>
-                        </table>
-
-                        <!-- 2. MONTHLY ROADMAP (Generated based on Checklist) -->
                         <div style="${sectionTitle}">2. Monthly Roadmap & Checklist Status</div>
-                        <table style="${tableStyle}">
-                            <thead>
-                                <tr>
-                                    <th style="${thStyle} width: 20%;">Phase</th>
-                                    <th style="${thStyle} width: 15%;">Status</th>
-                                    <th style="${thStyle}">Key Tasks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <table style="${tableStyle}"><thead><tr><th style="${thStyle} width: 20%;">Phase</th><th style="${thStyle} width: 15%;">Status</th><th style="${thStyle}">Key Tasks</th></tr></thead><tbody>
                                 ${s.checklist.map(stage => {
-                                    const completedTasks = stage.tasks.filter(t => t.done).length;
-                                    const totalTasks = stage.tasks.length;
-                                    const isComplete = completedTasks === totalTasks;
-                                    const statusColor = isComplete ? '#dcfce7' : (completedTasks > 0 ? '#fff7ed' : '#f1f5f9');
-                                    const statusText = isComplete ? 'Completed' : (completedTasks > 0 ? 'In Progress' : 'Pending');
-
-                                    return `
-                                    <tr>
-                                        <td style="${tdStyle} font-weight: bold;">${stage.stage}</td>
-                                        <td style="${tdStyle} background-color: ${statusColor}; text-align: center; font-size: 10px; font-weight: bold;">${statusText}</td>
-                                        <td style="${tdStyle}">
-                                            <ul style="margin: 0; padding-left: 15px; font-size: 10px;">
-                                                ${stage.tasks.map(t => `
-                                                    <li style="color: ${t.done ? '#64748b' : '#000'}; text-decoration: ${t.done ? 'line-through' : 'none'}">${t.text}</li>
-                                                `).join('')}
-                                            </ul>
-                                        </td>
-                                    </tr>
-                                    `;
+                                    const completed = stage.tasks.filter(t => t.done).length;
+                                    const total = stage.tasks.length;
+                                    const isComplete = completed === total;
+                                    const statusColor = isComplete ? '#dcfce7' : (completed > 0 ? '#fff7ed' : '#f1f5f9');
+                                    const statusText = isComplete ? 'Completed' : (completed > 0 ? 'In Progress' : 'Pending');
+                                    return `<tr><td style="${tdStyle} font-weight: bold;">${stage.stage}</td><td style="${tdStyle} background-color: ${statusColor}; text-align: center; font-size: 10px; font-weight: bold;">${statusText}</td><td style="${tdStyle}"><ul style="margin: 0; padding-left: 15px; font-size: 10px;">${stage.tasks.map(t => `<li style="color: ${t.done ? '#64748b' : '#000'}; text-decoration: ${t.done ? 'line-through' : 'none'}">${t.text}</li>`).join('')}</ul></td></tr>`;
                                 }).join('')}
-                            </tbody>
-                        </table>
+                        </tbody></table>
 
-                        <!-- 3. FINANCIAL HEALTH -->
                         <div style="${sectionTitle}">3. Financial Health</div>
-                        <table style="${tableStyle}">
-                            <tr>
-                                <th style="${thStyle}">Total Budget</th>
-                                <th style="${thStyle}">Monthly Burn</th>
-                                <th style="${thStyle}">Current Revenue</th>
-                                <th style="${thStyle}">Cash Remaining</th>
-                            </tr>
-                            <tr>
-                                <td style="${tdStyle} font-size: 14px;">$${s.finance.budget}</td>
-                                <td style="${tdStyle} font-size: 14px; color: #dc2626;">$${s.finance.monthlyCost}</td>
-                                <td style="${tdStyle} font-size: 14px; color: #059669;">$${s.finance.currentRevenue}</td>
-                                <td style="${tdStyle} font-size: 14px; font-weight: bold;">$${cashLeft}</td>
-                            </tr>
-                        </table>
-
+                        <table style="${tableStyle}"><tr><th style="${thStyle}">Total Budget</th><th style="${thStyle}">Monthly Burn</th><th style="${thStyle}">Current Revenue</th><th style="${thStyle}">Cash Remaining</th></tr><tr><td style="${tdStyle} font-size: 14px;">$${s.finance.budget}</td><td style="${tdStyle} font-size: 14px; color: #dc2626;">$${s.finance.monthlyCost}</td><td style="${tdStyle} font-size: 14px; color: #059669;">$${s.finance.currentRevenue}</td><td style="${tdStyle} font-size: 14px; font-weight: bold;">$${cashLeft}</td></tr></table>
                         <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Expense Breakdown:</div>
-                        <table style="${tableStyle}">
-                            <thead>
-                                <tr>
-                                    <th style="${thStyle}">Item Description</th>
-                                    <th style="${thStyle} text-align: right;">Cost</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${s.finance.expenses.length > 0 ? s.finance.expenses.map(ex => `
-                                    <tr>
-                                        <td style="${tdStyle}">${ex.item}</td>
-                                        <td style="${tdStyle} text-align: right;">$${ex.cost}</td>
-                                    </tr>
-                                `).join('') : `<tr><td colspan="2" style="${tdStyle} text-align: center;">No expenses recorded</td></tr>`}
-                            </tbody>
-                        </table>
+                        <table style="${tableStyle}"><thead><tr><th style="${thStyle}">Item Description</th><th style="${thStyle} text-align: right;">Cost</th></tr></thead><tbody>${(s.finance.expenses || []).map(ex => `<tr><td style="${tdStyle}">${ex.item}</td><td style="${tdStyle} text-align: right;">$${ex.cost}</td></tr>`).join('')}</tbody></table>
 
-                        <!-- 4. GROWTH & MARKETING -->
                         <div style="${sectionTitle}">4. Growth & Marketing</div>
-                        <table style="${tableStyle}">
-                            <tr>
-                                <th style="${thStyle}">Total Leads</th>
-                                <td style="${tdStyle}">${s.growth.leads}</td>
-                                <th style="${thStyle}">Paying Customers</th>
-                                <td style="${tdStyle}">${s.growth.customers}</td>
-                                <th style="${thStyle}">Conversion Rate</th>
-                                <td style="${tdStyle}">${s.growth.leads > 0 ? ((s.growth.customers / s.growth.leads)*100).toFixed(1) : 0}%</td>
-                            </tr>
-                        </table>
-                        
-                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Active Channels:</div>
-                        <table style="${tableStyle}">
-                             <thead>
-                                <tr>
-                                    <th style="${thStyle}">Channel Name</th>
-                                    <th style="${thStyle}">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${s.marketing.channels.length > 0 ? s.marketing.channels.map(ch => `
-                                    <tr>
-                                        <td style="${tdStyle}">${ch.name}</td>
-                                        <td style="${tdStyle}">${ch.status}</td>
-                                    </tr>
-                                `).join('') : `<tr><td colspan="2" style="${tdStyle} text-align: center;">No channels defined</td></tr>`}
-                            </tbody>
-                        </table>
-
-                        <div style="margin-top: 20px; font-size: 10px; color: #94a3b8; text-align: center;">
-                            Generated using Startup Founder OS
-                        </div>
-                    </div>
-                `;
+                        <table style="${tableStyle}"><tr><th style="${thStyle}">Total Leads</th><td style="${tdStyle}">${s.growth.leads}</td><th style="${thStyle}">Paying Customers</th><td style="${tdStyle}">${s.growth.customers}</td><th style="${thStyle}">Conversion Rate</th><td style="${tdStyle}">${s.growth.leads > 0 ? ((s.growth.customers / s.growth.leads)*100).toFixed(1) : 0}%</td></tr></table>
+                        <div style="margin-top: 20px; font-size: 10px; color: #94a3b8; text-align: center;">Generated using Startup Founder OS</div>
+                    </div>`;
 
                 container.innerHTML = html;
-
-                const opt = {
-                    margin:       10,
-                    filename:     `${s.name.replace(/\s+/g, '_')}_MasterReport.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2 },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-
-                html2pdf().set(opt).from(container).save().then(() => {
-                    container.innerHTML = ''; 
-                });
+                const opt = { margin: 10, filename: `${s.name.replace(/\s+/g, '_')}_MasterReport.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+                html2pdf().set(opt).from(container).save().then(() => { container.innerHTML = ''; });
             }
 
-            // ... (Rest of existing logic methods like calculateProgress etc. remain same) ...
-            
-            calculateProgress(startup) {
-                let total = 0;
-                let completed = 0;
-                startup.checklist.forEach(stage => {
-                    stage.tasks.forEach(task => {
-                        total++;
-                        if(task.done) completed++;
-                    });
-                });
+            calculateProgress(s) {
+                let total = 0, completed = 0;
+                s.checklist.forEach(st => st.tasks.forEach(t => { total++; if(t.done) completed++; }));
                 return total === 0 ? 0 : Math.round((completed / total) * 100);
             }
-
-            calculateExpenses(startup) {
-                return startup.finance.expenses.reduce((acc, curr) => acc + Number(curr.cost), 0);
-            }
-            
-            toggleTask(id, stageIdx, taskIdx) {
-                const s = this.getStartup(id);
-                s.checklist[stageIdx].tasks[taskIdx].done = !s.checklist[stageIdx].tasks[taskIdx].done;
-                this.save();
-                this.renderStartup(id);
-            }
-
-            updateField(id, path, value) {
-                const s = this.getStartup(id);
-                const keys = path.split('.');
-                let target = s;
-                for (let i = 0; i < keys.length - 1; i++) {
-                    target = target[keys[i]];
-                }
-                target[keys[keys.length - 1]] = value;
-                this.save();
-                if(path.includes('finance') || path.includes('growth')) {
-                     this.renderStartup(id);
-                }
-            }
-            
-            // CRUD wrappers
-            addChannel(id) {
-                const s = this.getStartup(id);
-                s.marketing.channels.push({ name: '', status: 'Planned' });
-                this.save();
-                this.renderStartup(id);
-            }
-            updateChannel(id, idx, field, value) {
-                const s = this.getStartup(id);
-                s.marketing.channels[idx][field] = value;
-                this.save();
-            }
-            removeChannel(id, idx) {
-                const s = this.getStartup(id);
-                s.marketing.channels.splice(idx, 1);
-                this.save();
-                this.renderStartup(id);
-            }
-            addExpense(id) {
-                const s = this.getStartup(id);
-                s.finance.expenses.push({ item: 'Expense Item', cost: 0 });
-                this.save();
-                this.renderStartup(id);
-            }
-            updateExpense(id, idx, field, value) {
-                const s = this.getStartup(id);
-                s.finance.expenses[idx][field] = value;
-                this.save();
-                if(field === 'cost') this.renderStartup(id);
-            }
-            removeExpense(id, idx) {
-                const s = this.getStartup(id);
-                s.finance.expenses.splice(idx, 1);
-                this.save();
-                this.renderStartup(id);
-            }
-            addRound(id) {
-                const s = this.getStartup(id);
-                s.investment.rounds.push({ name: '', amount: 0, investor: '' });
-                this.save();
-                this.renderStartup(id);
-            }
-            updateRound(id, idx, field, value) {
-                const s = this.getStartup(id);
-                s.investment.rounds[idx][field] = value;
-                this.save();
-            }
-            removeRound(id, idx) {
-                const s = this.getStartup(id);
-                s.investment.rounds.splice(idx, 1);
-                this.save();
-                this.renderStartup(id);
-            }
+            calculateExpenses(s) { return (s.finance.expenses || []).reduce((acc, curr) => acc + Number(curr.cost), 0); }
             openModal(id) { document.getElementById(id).classList.remove('hidden'); }
             closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         }
 
-        const app = new StartupOS();
+        // Attach to window object
+        window.app = new StartupOS();
     </script>
 </body>
 </html>
